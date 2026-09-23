@@ -4,6 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BAR LOG</title>
+<meta name="description" content="気分を答えるだけで、今夜の一杯を5択で提案。飲んだ記録も残せるカクテル診断アプリ。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%A5%83%3C/text%3E%3C/svg%3E">
+<meta property="og:type" content="website">
+<meta property="og:title" content="BAR LOG">
+<meta property="og:description" content="気分を答えるだけで、今夜の一杯を5択で提案。飲んだ記録も残せるカクテル診断アプリ。">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="BAR LOG">
+<meta name="twitter:description" content="気分を答えるだけで、今夜の一杯を5択で提案。飲んだ記録も残せるカクテル診断アプリ。">
 <style>
   /* ============================================================
      THEME TOKENS — 黒×白のモノトーン。ダークがデフォルト、
@@ -102,6 +110,10 @@
     transition: background 0.15s, transform 0.1s;
   }
   button:active { transform: scale(0.98); }
+  button:disabled {
+    opacity: 0.4; cursor: not-allowed; pointer-events: none;
+  }
+  button:disabled:active { transform: none; }
   .screen { display: flex; flex-direction: column; gap: 20px; animation: screenIn 0.2s ease; }
   @keyframes screenIn {
     from { opacity: 0; transform: translateY(6px); }
@@ -116,9 +128,11 @@
   .logo {
     font-size: 11px; letter-spacing: 0.1em; color: var(--text-secondary);
     background: var(--surface); border: 0.5px solid var(--border); border-radius: 20px;
-    padding: 6px 14px; cursor: pointer; font-family: inherit;
+    padding: 6px 14px 6px 10px; cursor: pointer; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 6px;
   }
   .logo:active { background: var(--surface-2); color: var(--text-primary); }
+  .home-icon { flex-shrink: 0; }
   .modal-overlay {
     position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6);
     display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 24px;
@@ -182,6 +196,9 @@
     background: none; border: none; padding: 4px 0 0 12px; font-size: 12px;
     color: var(--accent2); text-align: left;
   }
+  .trivia-section { font-size: 12px; color: var(--text-secondary); line-height: 1.7; }
+  .trivia-section + .trivia-section { margin-top: 12px; }
+  .trivia-section-label { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; letter-spacing: 0.05em; }
   .swatch { flex-shrink: 0; border: 0.5px solid var(--border); }
   /* グラスの形(サイズ非依存の形状) */
   .glass-rock { border-radius: 2px 2px 6px 6px; }
@@ -214,6 +231,10 @@
     display: inline-block; font-size: 10px; padding: 1px 6px; border-radius: 5px;
     border: 0.5px solid var(--border); color: var(--text-muted); flex-shrink: 0;
   }
+  .untried-badge {
+    display: inline-block; font-size: 10px; padding: 1px 6px; border-radius: 5px;
+    border: 0.5px solid var(--accent2); color: var(--accent2); flex-shrink: 0;
+  }
   .legend-row { display: flex; gap: 16px; justify-content: center; padding: 2px 0 4px; }
   .legend-item { display: flex; flex-direction: column; align-items: center; gap: 5px; }
   .legend-label { font-size: 11px; color: var(--text-secondary); }
@@ -225,10 +246,10 @@
   .search-input::placeholder { color: var(--text-muted); }
   .tab-row { display: flex; gap: 8px; }
   .tab-btn { flex: 1; padding: 10px 0; font-size: 13px; }
-  .tab-btn.active { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+  .tab-btn.active { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 600; }
   .chip-row { display: flex; flex-wrap: wrap; gap: 8px; }
   .chip { padding: 9px 14px; font-size: 12px; border-radius: 20px; }
-  .chip.active { background: var(--accent2-bg); color: var(--accent2); border-color: var(--accent2); }
+  .chip.active { background: var(--accent2-bg); color: var(--accent2); border-color: var(--accent2); font-weight: 600; }
   .filter-group { margin-top: 10px; }
   .filter-group-label { font-size: 11px; color: var(--text-muted); margin-bottom: 6px; }
   .filter-reset { font-size: 12px; color: var(--text-secondary); padding: 6px 0; background: none; border: none; text-decoration: underline; }
@@ -238,6 +259,16 @@
   }
   .badge-chip.earned { background: var(--accent2-bg); color: var(--accent2); border-color: var(--accent2); }
   .badge-chip.locked { color: var(--text-muted); }
+  .badge-chip.rank-bronze.earned { background: rgba(176, 141, 87, 0.16); color: #cf9f6e; border-color: #b08d57; }
+  .badge-chip.rank-silver.earned { background: rgba(201, 205, 212, 0.14); color: #d7dade; border-color: #9ea3ab; }
+  .badge-chip.rank-gold.earned { background: var(--accent2-bg); color: var(--accent2); border-color: var(--accent2); box-shadow: 0 0 10px rgba(209, 163, 92, 0.35); }
+  .rank-summary {
+    display: inline-block; font-size: 11px; padding: 3px 10px; border-radius: 8px; margin-left: 8px;
+  }
+  .rank-summary.rank-見習い { color: var(--text-muted); border: 0.5px solid var(--border); }
+  .rank-summary.rank-ブロンズ { color: #cf9f6e; border: 0.5px solid #b08d57; background: rgba(176, 141, 87, 0.14); }
+  .rank-summary.rank-シルバー { color: #d7dade; border: 0.5px solid #9ea3ab; background: rgba(201, 205, 212, 0.12); }
+  .rank-summary.rank-ゴールド { color: var(--accent2); border: 0.5px solid var(--accent2); background: var(--accent2-bg); box-shadow: 0 0 10px rgba(209, 163, 92, 0.35); }
   .diagnosis-card {
     background: var(--surface); border: 1px solid var(--accent2); border-radius: 14px;
     padding: 20px; text-align: center;
@@ -259,11 +290,11 @@
   .log-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
   .pref-pill { font-size: 11px; padding: 3px 9px; border-radius: 8px; background: var(--surface-2); color: var(--text-secondary); }
   .pref-pill.good { color: var(--accent2); background: var(--accent2-bg); }
-  .primary-btn { width: 100%; padding: 15px; font-weight: 500; font-size: 14px; background: var(--accent); color: var(--bg); border: none; }
-  .ghost-btn { width: 100%; padding: 13px; font-size: 13px; color: var(--text-secondary); }
+  .primary-btn { width: 100%; padding: 17px; font-weight: 600; font-size: 15px; background: var(--accent); color: var(--bg); border: none; }
+  .ghost-btn { width: 100%; padding: 10px; font-size: 12px; color: var(--text-muted); background: none; border: none; }
   .pref-row { display: flex; gap: 8px; }
   .pref-btn { flex: 1; padding: 12px 0; font-size: 13px; }
-  .pref-btn.selected { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+  .pref-btn.selected { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 600; }
   .err { color: #c96; font-size: 12px; }
 </style>
 </head>
@@ -297,7 +328,7 @@
       line: "王道の軽やかさ。まず外さない一杯",
       recipe: "ジン45ml、トニックウォーター90ml、ライム",
       trivia: "起源はイギリス統治下のインド。マラリア予防薬キニーネの苦味をジンと炭酸で飲みやすくしたのが始まり",
-      triviaLong: "レモンよりライムを使うのが伝統的なスタイル。トニックウォーターの銘柄を変えるだけで味わいが大きく変わるため、こだわる人はジンとトニックの組み合わせを吟味する。",
+      triviaLong: { origin: "起源はイギリス統治下のインドで、マラリア予防薬キニーネの苦味をジンと炭酸で飲みやすくしたのが始まりとされる。", variation: "レモンよりライムを使うのが伝統的なスタイルで、トニックウォーターの銘柄によっても風味が大きく変わる。", tip: "氷を先に入れてから炭酸をゆっくり注ぐと、泡が飛びにくく最後まで爽快な喉ごしを保てる。" },
       color: "#eef2ee", look: "無色透明。氷とライムがよく映える",
       glass: "highball", carbonated: true },
     { id: "gin_rickey", name: "ジンリッキー", base: "gin", genre: "cocktail",
@@ -305,7 +336,7 @@
       line: "静かに酔いたい夜向き。ドライで軽やか",
       recipe: "ジン45ml、ライムジュース15ml、ソーダ",
       trivia: "19世紀末、ワシントンD.C.のロビイストJoe Rickeyの名にちなむ。砂糖を使わない辛口が特徴",
-      triviaLong: "ベースの酒を変えても成立する懐の深いレシピで、「ウイスキーリッキー」などのバリエーションもある。氷をたっぷり入れてグラスの温度を保つのが美味しく飲むコツとされる。",
+      triviaLong: { origin: "19世紀末、ワシントンD.C.のロビイストJoe Rickeyの名にちなんで生まれた、砂糖を使わない辛口カクテル。", variation: "ベースの酒を変えても成立する懐の深いレシピで「ウイスキーリッキー」などの派生も存在する。", tip: "氷をたっぷり入れてグラスの温度を保つのが、最後まで薄まらず美味しく飲むコツ。" },
       color: "#eef2ee", look: "無色透明。見た目は水に近い軽さ",
       glass: "highball", carbonated: true },
     { id: "negroni", name: "ネグローニ", base: "gin", genre: "cocktail",
@@ -313,7 +344,7 @@
       line: "大人の苦味。落ち着いた雰囲気に合う",
       recipe: "ジン20ml、スウィートベルモット20ml、カンパリ20ml",
       trivia: "1919年、フィレンツェのネグローニ伯爵がカクテルの度数を上げてほしいと頼んだのが由来とされる",
-      triviaLong: "定番の比率はジン・ベルモット・カンパリが1:1:1だが、近年はジンを増やして辛口にする作り方も人気。プロセッコを加えた「ネグローニ・スバリアート」というバリエーションもある。",
+      triviaLong: { origin: "1919年、フィレンツェのネグローニ伯爵がカクテルの度数を上げてほしいと頼んだのが由来とされる。", variation: "ジンを増やして辛口にする作り方や、プロセッコを加えた「ネグローニ・スバリアート」というバリエーションもある。", tip: "大きめの氷を1つだけ入れると、溶けるスピードが遅く最後まで味が崩れにくい。" },
       color: "#c1443a", look: "鮮やかな赤オレンジ。カンパリの色がそのまま出る",
       glass: "rock", carbonated: false },
     { id: "martini", name: "マティーニ", base: "gin", genre: "cocktail",
@@ -321,7 +352,7 @@
       line: "会話を止める一杯。多くを語らない強さ",
       recipe: "ジン45ml、ドライベルモット15ml、オリーブ",
       trivia: "「カクテルの王様」と呼ばれる。ジンとベルモットの比率は店ごとに流儀があり、注文時に会話のネタになる",
-      triviaLong: "ベルモットの量を極限まで減らした「ドライマティーニ」、逆に増やした「ウェットマティーニ」など、比率で呼び名が変わる。ウォッカ版は「ウォッカティーニ」と呼ばれ、映画007のジェームズ・ボンドが好んだことで知られる。",
+      triviaLong: { origin: "「カクテルの王様」と呼ばれる古典で、ジンとベルモットの比率は店ごとに流儀があり、注文時の会話のネタになる。", variation: "ベルモットを極限まで減らした「ドライマティーニ」、ウォッカ版の「ウォッカティーニ」など、呼び名だけで何種類もある。", tip: "グラスを事前にしっかり冷やしておくと、混ぜる時間を短縮でき水っぽくなりにくい。" },
       color: "#f0ecd9", look: "ほぼ透明の淡い黄色。逆三角のグラスが印象的",
       glass: "coupe", carbonated: false },
     { id: "whiskey_sour", name: "ウイスキーサワー", base: "whiskey", genre: "cocktail",
@@ -329,7 +360,7 @@
       line: "香ばしくコクがある。語りに向く一杯",
       recipe: "ウイスキー45ml、レモンジュース20ml、シロップ10ml",
       trivia: "サワー系カクテルの原型。19世紀の船乗りがビタミン補給のためにライムを加えたのが起源という説がある",
-      triviaLong: "卵白を加えて泡立たせる作り方も定番で、見た目がよりクリーミーになる。仕上げにビターズを数滴垂らす店も多い。",
+      triviaLong: { origin: "サワー系カクテルの原型とされ、19世紀の船乗りがビタミン補給のためにライムを加えたのが起源という説がある。", variation: "卵白を加えて泡立たせる作り方も定番で、見た目がよりクリーミーになる。", tip: "仕上げにアンゴスチュラビターズを数滴垂らすと、香りに奥行きが出る。" },
       color: "#d99a4e", look: "琥珀色でとろみのある見た目",
       glass: "rock", carbonated: false },
     { id: "old_fashioned", name: "オールドファッションド", base: "whiskey", genre: "cocktail",
@@ -337,7 +368,7 @@
       line: "バーボンの芯を感じる、静かな一杯",
       recipe: "ウイスキー45ml、角砂糖、ビターズ、オレンジピール",
       trivia: "カクテルの原型とも言われる最古参の一つ。「昔ながらの作り方」という名前がそのまま由来",
-      triviaLong: "名前の由来は「昔ながらの作り方」で、フルーツピューレを加える一時期のスタイルへの反発から生まれたとされる。使うウイスキーをバーボンからライにするだけで印象が大きく変わる。",
+      triviaLong: { origin: "カクテルの原型とも言われる最古参の一つで、「昔ながらの作り方」という名前がそのまま由来になっている。", variation: "使うウイスキーをバーボンからライに変えるだけで、印象がかなりスパイシーな方向に変わる。", tip: "角砂糖はビターズを染み込ませてから潰すと、香りが全体に均一に広がる。" },
       color: "#b5651d", look: "濃い琥珀色。大きな氷一つで見た目も渋い",
       glass: "rock", carbonated: false },
     { id: "highball", name: "ハイボール", base: "whiskey", genre: "cocktail",
@@ -345,7 +376,7 @@
       line: "食事にも合う、飲み飽きない軽さ",
       recipe: "ウイスキー30ml、ソーダ90ml",
       trivia: "名前の由来には諸説あり、ゴルフ用語やアメリカの鉄道信号から来たという説が有名",
-      triviaLong: "日本ではサントリーの「角ハイボール」ブームで国民的な飲み方として定着した。ウイスキーとソーダの比率は1:3が目安とされるが、店によって幅がある。",
+      triviaLong: { origin: "名前の由来には諸説あり、ゴルフ用語やアメリカの鉄道信号から来たという説が有名。", variation: "日本ではサントリーの「角ハイボール」ブームで国民的な飲み方として定着した。", tip: "ウイスキーとソーダの比率は1:3が目安。ステアは軽く1回だけにすると炭酸が抜けにくい。" },
       color: "#e8d9b5", look: "薄い琥珀色で泡立つ、炭酸の弾ける見た目",
       glass: "highball", carbonated: true },
     { id: "mojito", name: "モヒート", base: "rum", genre: "cocktail",
@@ -353,7 +384,7 @@
       line: "ミントが香る、会話が弾む一杯",
       recipe: "ラム45ml、ライム、ミント、砂糖、ソーダ",
       trivia: "キューバ発祥で、文豪ヘミングウェイが愛飲したことで世界的に広まった",
-      triviaLong: "ミントの葉を潰しすぎると苦味が出るため、軽く叩いて香りを立たせる程度に留めるのがバーテンダーのこだわり。キューバでは炭酸を使わない素朴な原型「エル・ドラケ」が起源という説もある。",
+      triviaLong: { origin: "キューバ発祥で、文豪ヘミングウェイが愛飲したことで世界的に広まった。", variation: "炭酸を使わない素朴な原型「エル・ドラケ」が起源という説もある。", tip: "ミントは潰しすぎると苦味が出るため、軽く叩いて香りを立たせる程度に留めるのがコツ。" },
       color: "#bfe3b4", look: "ミントの緑が目立つ、爽やかな見た目",
       glass: "highball", carbonated: true },
     { id: "daiquiri", name: "ダイキリ", base: "rum", genre: "cocktail",
@@ -361,7 +392,7 @@
       line: "シンプルでクセがない、万人向けの一杯",
       recipe: "ラム45ml、ライムジュース15ml、シロップ10ml",
       trivia: "名前はキューバの鉱山町ダイキリから。ラム・ライム・砂糖だけのシンプルな構成が原型",
-      triviaLong: "凍らせてシャーベット状にした「フローズン・ダイキリ」も定番のバリエーション。ヘミングウェイが好んだのは砂糖抜きでグレープフルーツを加えた辛口タイプだったと言われる。",
+      triviaLong: { origin: "名前はキューバの鉱山町ダイキリから。ラム・ライム・砂糖だけのシンプルな構成が原型。", variation: "凍らせてシャーベット状にした「フローズン・ダイキリ」も定番のバリエーション。", tip: "ヘミングウェイが好んだのは砂糖抜きでグレープフルーツを加えた辛口タイプだったと言われる。" },
       color: "#f2eccb", look: "淡い黄色。すっきりとした透明感",
       glass: "coupe", carbonated: false },
     { id: "dark_and_stormy", name: "ダークアンドストーミー", base: "rum", genre: "cocktail",
@@ -369,7 +400,7 @@
       line: "ジンジャーの刺激とコク、通好みの一杯",
       recipe: "ラム45ml、ジンジャービア、ライム",
       trivia: "バミューダ諸島の定番カクテルで、嵐の海の色に見立てたのが名前の由来",
-      triviaLong: "バミューダの企業ゴスリングズが商標を持つ、珍しく銘柄名がレシピ名になっているカクテル。ジンジャービアの辛さが強いほど「嵐」らしさが増す。",
+      triviaLong: { origin: "バミューダ諸島の定番カクテルで、嵐の海の色に見立てたのが名前の由来。", variation: "バミューダの企業ゴスリングズが商標を持つ、珍しく銘柄名がレシピ名になっているカクテル。", tip: "ジンジャービアの辛さが強いものを選ぶほど「嵐」らしい刺激が際立つ。" },
       color: "#3b2314", colorTo: "#e8b34e", look: "上に濃いラム、下に淡いジンジャービアの二層",
       glass: "highball", carbonated: true },
     { id: "moscow_mule", name: "モスコミュール", base: "vodka", genre: "cocktail",
@@ -377,7 +408,7 @@
       line: "銅マグでも映える、話題づくりの一杯",
       recipe: "ウォッカ45ml、ジンジャービア、ライム",
       trivia: "銅製のマグで供するのが伝統。ウォッカが売れずに困っていた業者の販促がきっかけで広まったと言われる",
-      triviaLong: "銅のマグを使うのは見た目だけでなく、冷たさが伝わりやすく保冷効果も高いという実用的な理由もある。ジンジャービアはジンジャーエールより辛口なものを使うのが本来のスタイル。",
+      triviaLong: { origin: "銅製のマグで供するのが伝統。ウォッカが売れずに困っていた業者の販促がきっかけで広まったと言われる。", variation: "ジンジャービアはジンジャーエールより辛口なものを使うのが本来のスタイル。", tip: "銅のマグは見た目だけでなく、冷たさが伝わりやすく保冷効果も高い実用的な理由がある。" },
       color: "#f5e7a1", look: "淡い黄色。銅のマグで出ることが多く見た目も特徴的",
       glass: "mug", carbonated: true },
     { id: "cosmopolitan", name: "コスモポリタン", base: "vodka", genre: "cocktail",
@@ -385,7 +416,7 @@
       line: "香り高く華やか、印象に残る一杯",
       recipe: "ウォッカ30ml、コアントロー15ml、クランベリージュース30ml、ライム",
       trivia: "海外ドラマ「セックス・アンド・ザ・シティ」で主人公が愛飲し、90年代に世界的なブームを起こした",
-      triviaLong: "本来はウォッカ・シトロン(レモン風味のウォッカ)を使うのが定番だが、プレーンなウォッカで作る店も多い。ライムを絞ってから軽く炙る演出をするバーもある。",
+      triviaLong: { origin: "海外ドラマ「セックス・アンド・ザ・シティ」で主人公が愛飲し、90年代に世界的なブームを起こした。", variation: "本来はウォッカ・シトロン(レモン風味のウォッカ)を使うのが定番だが、プレーンなウォッカで作る店も多い。", tip: "ライムを絞ってから軽く炙ると、香りが一段と華やかになる。" },
       color: "#e0587a", look: "鮮やかなピンク。写真映えする華やかな見た目",
       glass: "coupe", carbonated: false },
     { id: "espresso_martini", name: "エスプレッソマティーニ", base: "vodka", genre: "cocktail",
@@ -393,7 +424,7 @@
       line: "コーヒーの余韻。夜を長くする一杯",
       recipe: "ウォッカ40ml、コーヒーリキュール20ml、エスプレッソ30ml",
       trivia: "1980年代ロンドンのバーテンダーが、モデルの「眠気覚ましになる一杯を」という注文から考案した",
-      triviaLong: "考案者はイギリスのバーテンダー、ディック・ブラッドセル。強く振ることで、表面にきめ細かいコーヒー色の泡の層ができるのが完成度の目安。",
+      triviaLong: { origin: "1980年代ロンドンのバーテンダー、ディック・ブラッドセルが、モデルの「眠気覚ましになる一杯を」という注文から考案した。", variation: "コーヒーリキュールの銘柄によって甘さと苦味のバランスが大きく変わる。", tip: "強く振ることで、表面にきめ細かいコーヒー色の泡の層ができるのが完成度の目安。" },
       color: "#c9a27a", colorTo: "#3c2415", look: "上にクリーマの層、下は濃い茶色の二層",
       glass: "coupe", carbonated: false },
     { id: "margarita", name: "マルガリータ", base: "tequila", genre: "cocktail",
@@ -401,7 +432,7 @@
       line: "塩の縁が効いた、テンションが上がる一杯",
       recipe: "テキーラ40ml、コアントロー15ml、ライムジュース15ml",
       trivia: "グラスの縁に塩をつける「スノースタイル」が特徴。名前の由来には諸説あり、亡くなった恋人説が有名",
-      triviaLong: "スノースタイル(塩の縁取り)は好みで無しにもできる。フローズンスタイルで氷と一緒にブレンドする作り方もアメリカでは主流。",
+      triviaLong: { origin: "グラスの縁に塩をつける「スノースタイル」が特徴。名前の由来には諸説あり、亡くなった恋人説が有名。", variation: "フローズンスタイルで氷と一緒にブレンドする作り方もアメリカでは主流。", tip: "塩は縁の半分だけにつけると、甘さと塩気を飲むたびに選べて楽しい。" },
       color: "#eaf2d7", look: "淡い黄緑。グラス縁の塩が白く際立つ",
       glass: "coupe", carbonated: false },
     { id: "tequila_sunrise", name: "テキーラサンライズ", base: "tequila", genre: "cocktail",
@@ -409,7 +440,7 @@
       line: "グラデーションが映える、乾杯向きの一杯",
       recipe: "テキーラ45ml、オレンジジュース、グレナデンシロップ",
       trivia: "グレナデンシロップが沈んで朝焼けのようなグラデーションを作る。ローリングストーンズが愛飲したことでも有名",
-      triviaLong: "1970年代にローリングストーンズのツアーで振る舞われたことで一躍有名になった。混ぜずに層を作ったまま飲み進めると、味の変化も楽しめる。",
+      triviaLong: { origin: "グレナデンシロップが沈んで朝焼けのようなグラデーションを作る。ローリングストーンズが愛飲したことでも有名。", variation: "1970年代のツアーで振る舞われたことで一躍有名になった逸話が残る。", tip: "ストローで軽く1回だけ混ぜてグラデーションを崩しながら飲むと、味の変化を楽しめる。" },
       color: "#f4a949", colorTo: "#c1272d", look: "上はオレンジ、下は赤いグラデーション",
       glass: "highball", carbonated: false },
     { id: "paloma", name: "パロマ", base: "tequila", genre: "cocktail",
@@ -417,7 +448,7 @@
       line: "グレープフルーツで軽快、メキシコの定番",
       recipe: "テキーラ45ml、グレープフルーツソーダ、ライム",
       trivia: "実はマルガリータよりもメキシコ国内での人気が高いとされる、現地の定番カクテル",
-      triviaLong: "メキシコでは瓶入りのグレープフルーツソーダを使うのが定番。グラスの縁に塩をつけるスタイルも一般的。",
+      triviaLong: { origin: "実はマルガリータよりもメキシコ国内での人気が高いとされる、現地の定番カクテル。", variation: "メキシコでは瓶入りのグレープフルーツソーダを使うのが定番。", tip: "グラスの縁に塩をつけると、グレープフルーツの酸味がより引き立つ。" },
       color: "#f4b6b0", look: "淡いピンク。グレープフルーツの色味が出る",
       glass: "highball", carbonated: true },
     { id: "manhattan", name: "マンハッタン", base: "whiskey", genre: "cocktail",
@@ -425,7 +456,7 @@
       line: "静かな余韻。多くを語らずとも伝わる一杯",
       recipe: "ウイスキー45ml、スウィートベルモット15ml、ビターズ",
       trivia: "1870年代、ニューヨークのマンハッタンクラブで生まれたとされる、カクテルの古典中の古典",
-      triviaLong: "ベルモットの代わりにドライベルモットを使うと「ドライマンハッタン」、両方使うと「パーフェクトマンハッタン」と呼び名が変わる。チェリーを沈めるのが伝統的な仕上げ。",
+      triviaLong: { origin: "1870年代、ニューヨークのマンハッタンクラブで生まれたとされる、カクテルの古典中の古典。", variation: "ドライベルモットを使うと「ドライマンハッタン」、両方使うと「パーフェクトマンハッタン」と呼び名が変わる。", tip: "チェリーを沈めるのが伝統的な仕上げで、最後に食べるのも楽しみの一つ。" },
       color: "#7a2e22", look: "濃い赤茶色。チェリーが沈む重厚な見た目",
       glass: "coupe", carbonated: false },
     { id: "gimlet", name: "ギムレット", base: "gin", genre: "cocktail",
@@ -433,7 +464,7 @@
       line: "ライムの酸が効いた、すっと入る一杯",
       recipe: "ジン45ml、ライムジュース15ml、シロップ10ml",
       trivia: "イギリス海軍の軍医が壊血病予防にライムジュースを混ぜたのが起源という説がある",
-      triviaLong: "ジンの代わりにウォッカを使う店も多く、味の印象がかなり変わる。ライムジュースは市販のコーディアル(甘味のあるライム果汁)を使うのが本来のレシピ。",
+      triviaLong: { origin: "イギリス海軍の軍医が壊血病予防にライムジュースを混ぜたのが起源という説がある。", variation: "ジンの代わりにウォッカを使う店も多く、味の印象がかなり変わる。", tip: "ライムジュースは市販のコーディアル(甘味のあるライム果汁)を使うのが本来のレシピ。" },
       color: "#d7e8b0", look: "淡い黄緑。ライムのすっきりした印象",
       glass: "coupe", carbonated: false },
     { id: "aviation", name: "アビエーション", base: "gin", genre: "cocktail",
@@ -441,7 +472,7 @@
       line: "すみれ色の香り、上品な一杯",
       recipe: "ジン45ml、マラスキーノリキュール15ml、レモンジュース15ml、クレームドバイオレット少々",
       trivia: "1916年の文献に登場する古典カクテル。名前は飛行機。わずかに紫がかった色がその由来とされる",
-      triviaLong: "クレームドバイオレットは省略される作り方も多く、その場合は単なる「ジン・サワー」に近い味わいになる。入れるか入れないかで店のこだわりが分かる一杯。",
+      triviaLong: { origin: "1916年の文献に登場する古典カクテル。名前は飛行機。わずかに紫がかった色がその由来とされる。", variation: "クレームドバイオレットを省略した作り方も多く、その場合は単なる「ジン・サワー」に近い味わいになる。", tip: "紫の色味を楽しみたいなら、バイオレットリキュールを惜しまず入れるのがポイント。" },
       color: "#e8d9ea", look: "淡い紫がかった、透明感のある色",
       glass: "coupe", carbonated: false },
     { id: "bees_knees", name: "ビーズニーズ", base: "gin", genre: "cocktail",
@@ -449,7 +480,7 @@
       line: "はちみつの甘さが優しい、飲みやすい一杯",
       recipe: "ジン45ml、レモンジュース20ml、はちみつシロップ15ml",
       trivia: "禁酒法時代、質の悪いジンの風味をごまかすためにはちみつを使ったのが始まりとされる",
-      triviaLong: "はちみつはそのままだと溶けにくいため、同量のお湯で割った「はちみつシロップ」を使うのがバーテンダーの定石。レモンの代わりにライムを使う作り方もある。",
+      triviaLong: { origin: "禁酒法時代、質の悪いジンの風味をごまかすためにはちみつを使ったのが始まりとされる。", variation: "レモンの代わりにライムを使う作り方もあり、酸味の印象が変わる。", tip: "はちみつは同量のお湯で割った「はちみつシロップ」にしておくと溶けやすい。" },
       color: "#f2e2a8", look: "淡い黄金色で、とろみのある見た目",
       glass: "coupe", carbonated: false },
     { id: "boulevardier", name: "ブールバルディエ", base: "whiskey", genre: "cocktail",
@@ -457,7 +488,7 @@
       line: "ネグローニのウイスキー版。芯のある一杯",
       recipe: "バーボン30ml、スウィートベルモット30ml、カンパリ30ml",
       trivia: "1920年代のパリで発行されていた雑誌の名前から。ジンをバーボンに置き換えたネグローニ",
-      triviaLong: "考案者は1920年代パリで雑誌を発行していたアメリカ人、アースキン・ゴウィンとされる。ネグローニより少しウイスキーの厚みが前に出るのが特徴。",
+      triviaLong: { origin: "1920年代、パリで発行されていた雑誌の名前から。ジンをバーボンに置き換えたネグローニ。", variation: "考案者は雑誌編集者のアースキン・ゴウィンとされる。", tip: "ネグローニより少しウイスキーの厚みが前に出るので、ロックでじっくり味わうのがおすすめ。" },
       color: "#a8402f", look: "深みのある赤茶色",
       glass: "rock", carbonated: false },
     { id: "sazerac", name: "サゼラック", base: "whiskey", genre: "cocktail",
@@ -465,7 +496,7 @@
       line: "アブサンの香りをまとう、通好みの一杯",
       recipe: "ライウイスキー45ml、アブサンでグラスをリンス、角砂糖、ビターズ",
       trivia: "ニューオーリンズ発祥で、アメリカ最古のカクテルの一つとされる",
-      triviaLong: "本来はコニャックで作られていたが、19世紀後半のブドウ樹の病害でライウイスキーに置き換わった歴史がある。アブサンはグラスに香りづけするだけで、混ぜずに捨てるのが伝統的な作法。",
+      triviaLong: { origin: "ニューオーリンズ発祥で、アメリカ最古のカクテルの一つとされる。", variation: "本来はコニャックで作られていたが、19世紀後半のブドウ樹の病害でライウイスキーに置き換わった。", tip: "アブサンはグラスに香りづけするだけで、混ぜずに捨てるのが伝統的な作法。" },
       color: "#8a4a1e", look: "琥珀色。グラスにアブサンの香りが移る",
       glass: "rock", carbonated: false },
     { id: "mai_tai", name: "マイタイ", base: "rum", genre: "cocktail",
@@ -473,7 +504,7 @@
       line: "南国感たっぷり、旅気分を運ぶ一杯",
       recipe: "ラム45ml、オレンジキュラソー15ml、オルジェートシロップ15ml、ライムジュース15ml",
       trivia: "1944年、カリフォルニアのティキバーで考案。名前はタヒチ語で「最高」を意味する",
-      triviaLong: "考案者ヴィクター・バージロンが「タヒチ語で最高という意味」と名付けた逸話は有名。オルジェートシロップ(アーモンド風味)が本来の風味の決め手とされる。",
+      triviaLong: { origin: "1944年、カリフォルニアのティキバーで考案。名前はタヒチ語で「最高」を意味する。", variation: "考案者ヴィクター・バージロンの逸話は有名だが、諸説あるとされる。", tip: "オルジェートシロップ(アーモンド風味)が本来の風味の決め手なので、省かず使いたい。" },
       color: "#c96a2e", look: "琥珀がかったオレンジ色。ミントを飾ることが多い",
       glass: "rock", carbonated: false },
     { id: "pina_colada", name: "ピニャコラーダ", base: "rum", genre: "cocktail",
@@ -481,7 +512,7 @@
       line: "ココナッツが香る、デザート感覚の一杯",
       recipe: "ラム45ml、パイナップルジュース90ml、ココナッツクリーム30ml",
       trivia: "プエルトリコの国民的カクテル。名前は「濾したパイナップル」という意味",
-      triviaLong: "1978年にプエルトリコの国民的カクテルに正式認定された。缶詰のココナッツクリームを使うのが伝統的なレシピ。",
+      triviaLong: { origin: "プエルトリコの国民的カクテル。名前は「濾したパイナップル」という意味。", variation: "1978年にプエルトリコの国民的カクテルに正式認定された。", tip: "缶詰のココナッツクリームを使うのが伝統的なレシピで、味の再現度が高い。" },
       color: "#f5eccb", look: "白濁したクリーミーな見た目",
       glass: "highball", carbonated: false },
     { id: "bloody_mary", name: "ブラッディマリー", base: "vodka", genre: "cocktail",
@@ -489,7 +520,7 @@
       line: "食事にも合う、朝でも飲める一杯",
       recipe: "ウォッカ45ml、トマトジュース90ml、レモン、各種スパイス",
       trivia: "1920年代パリのバーで考案されたとされ、二日酔いの迎え酒としても定番",
-      triviaLong: "コショウやタバスコ、ウスターソースなど、店によって独自のスパイス配合を競う文化がある。二日酔いの朝に飲む「迎え酒」としてブランチメニューの定番になっている。",
+      triviaLong: { origin: "1920年代パリのバーで考案されたとされ、二日酔いの迎え酒としても定番。", variation: "コショウやタバスコ、ウスターソースなど、店によって独自のスパイス配合を競う文化がある。", tip: "セロリを添えるとマドラー代わりになり、香りのアクセントにもなる。" },
       color: "#b23a2e", look: "濃い赤色。セロリなどを飾ることも多い",
       glass: "highball", carbonated: false },
     { id: "screwdriver", name: "スクリュードライバー", base: "vodka", genre: "cocktail",
@@ -497,7 +528,7 @@
       line: "オレンジ感覚で飲める、軽い一杯",
       recipe: "ウォッカ45ml、オレンジジュース90ml",
       trivia: "名前の由来は、中東の油田労働者がドライバー(工具)でオレンジジュースとウォッカを混ぜたという逸話から",
-      triviaLong: "シンプルな構成ゆえに、オレンジジュースの質がそのまま味に直結する。ガリアーノを浮かべると「ハーベイ・ウォールバンガー」という別のカクテルになる。",
+      triviaLong: { origin: "名前の由来は、中東の油田労働者がドライバー(工具)でオレンジジュースとウォッカを混ぜたという逸話から。", variation: "ガリアーノを浮かべると「ハーベイ・ウォールバンガー」という別のカクテルになる。", tip: "シンプルな構成ゆえに、オレンジジュースの質がそのまま味に直結する。" },
       color: "#f0a23a", look: "鮮やかなオレンジ色",
       glass: "highball", carbonated: false },
     { id: "french_75", name: "フレンチ75", base: "gin", genre: "cocktail",
@@ -505,7 +536,7 @@
       line: "シャンパンの泡が上がる、華やかな一杯",
       recipe: "ジン30ml、レモンジュース15ml、シロップ10ml、シャンパンで満たす",
       trivia: "第一次世界大戦のフランス軍の大砲「75mm野砲」の威力になぞらえて名付けられた",
-      triviaLong: "名前の由来になった「75mm野砲」は第一次世界大戦でフランス軍が使用した高性能な兵器。ジンの代わりにコニャックを使う作り方が実はオリジナルに近いという説もある。",
+      triviaLong: { origin: "第一次世界大戦のフランス軍の大砲「75mm野砲」の威力になぞらえて名付けられた。", variation: "ジンの代わりにコニャックを使う作り方が実はオリジナルに近いという説もある。", tip: "シャンパンは仕上げに静かに注ぐと、泡が長持ちする。" },
       color: "#f2e6b8", look: "淡い金色で細かい泡が立つ",
       glass: "highball", carbonated: true },
     { id: "aperol_spritz", name: "アペロールスプリッツ", base: "other", genre: "cocktail",
@@ -513,7 +544,7 @@
       line: "オレンジ色が目を引く、食前向きの軽い一杯",
       recipe: "アペロール45ml、プロセッコ90ml、ソーダ少々",
       trivia: "北イタリア・ヴェネト州発祥。今や世界中のテラス席の定番になった",
-      triviaLong: "アペロール・プロセッコ・ソーダの比率は3:2:1が基本とされる。カンパリを使う「カンパリスプリッツ」はより苦味の強い大人向けの一杯になる。",
+      triviaLong: { origin: "北イタリア・ヴェネト州発祥。今や世界中のテラス席の定番になった。", variation: "カンパリを使う「カンパリスプリッツ」はより苦味の強い大人向けの一杯になる。", tip: "アペロール・プロセッコ・ソーダの比率は3:2:1が基本とされる。" },
       color: "#f2934a", look: "鮮やかなオレンジ色。泡がグラスの中で弾ける",
       glass: "highball", carbonated: true },
     { id: "sidecar", name: "サイドカー", base: "other", genre: "cocktail",
@@ -521,7 +552,7 @@
       line: "ブランデーの香り高い、フレンチな一杯",
       recipe: "ブランデー40ml、コアントロー20ml、レモンジュース20ml",
       trivia: "第一次世界大戦中、サイドカー付きバイクで送迎されたことが名前の由来という説がある",
-      triviaLong: "グラスの縁に砂糖をまぶす「シュガーリム」で仕上げるのが伝統的なスタイル。考案者には諸説あり、パリのバーテンダー説が有力とされる。",
+      triviaLong: { origin: "第一次世界大戦中、サイドカー付きバイクで送迎されたことが名前の由来という説がある。", variation: "グラスの縁に砂糖をまぶす「シュガーリム」で仕上げるのが伝統的なスタイル。", tip: "考案者には諸説あり、パリのバーテンダー説が有力とされる。" },
       color: "#d99a4a", look: "澄んだ琥珀色",
       glass: "coupe", carbonated: false },
     { id: "matador", name: "マタドール", base: "tequila", genre: "cocktail",
@@ -529,7 +560,7 @@
       line: "パイナップルが香る、南国風の一杯",
       recipe: "テキーラ45ml、パイナップルジュース60ml、ライムジュース15ml",
       trivia: "スペイン語で「闘牛士」の意味。マルガリータよりトロピカルな味わい",
-      triviaLong: "マルガリータからコアントローを抜き、パイナップルジュースに置き換えたような構成で、より南国感のある甘さになる。塩の縁取りをせずに飲むのが一般的。",
+      triviaLong: { origin: "スペイン語で「闘牛士」の意味。マルガリータよりトロピカルな味わい。", variation: "マルガリータからコアントローを抜き、パイナップルジュースに置き換えたような構成。", tip: "塩の縁取りをせずに、フルーツの甘さそのものを楽しむのが一般的。" },
       color: "#f2d24a", look: "鮮やかな黄色",
       glass: "rock", carbonated: false },
     { id: "singapore_sling", name: "シンガポールスリング", base: "gin", genre: "cocktail",
@@ -537,7 +568,7 @@
       line: "常夏の香り漂う、南国ムード満点の一杯",
       recipe: "ジン30ml、チェリーブランデー15ml、コアントロー、DOMベネディクティン、パイナップルジュース、ライムジュース、グレナデンシロップ、ビターズ、ソーダ",
       trivia: "1915年、シンガポールのラッフルズホテルのバーで考案。当時女性が人前でお酒を飲みづらかった時代に「フルーツジュースに見える一杯」として生まれたという説がある",
-      triviaLong: "現在もラッフルズホテルのロングバーで供され続けており、観光客が必ず注文する名物カクテルになっている。本来のレシピは長年門外不出とされ、後年になって公式レシピが公開された経緯がある。",
+      triviaLong: { origin: "1915年、シンガポールのラッフルズホテルのバーで考案。フルーツジュースに見える一杯として生まれたとされる。", variation: "本来のレシピは長年門外不出とされ、後年になって公式レシピが公開された経緯がある。", tip: "現在もラッフルズホテルのロングバーで供され続けており、観光客の必須オーダーになっている。" },
       color: "#f2704a", colorTo: "#c1273f", look: "夕焼けのようなピンクオレンジのグラデーション",
       glass: "highball", carbonated: true },
 
@@ -546,7 +577,7 @@
       line: "炭酸が心地よい、食事にも合う定番の一杯",
       recipe: "ジン45ml、レモンジュース20ml、シロップ10ml、ソーダで満たす",
       trivia: "19世紀ロンドンで人気だった「コリンズ」という人物のいたずら電話が名前の由来という説がある、古典中の古典",
-      triviaLong: "「コリンズグラス」という専用の細長いグラス名の由来にもなった一杯。同じ構成でジンをウイスキーに変えると「ジョン・コリンズ」と呼び名が変わる。",
+      triviaLong: { origin: "19世紀ロンドンで人気だった「コリンズ」という人物のいたずら電話が名前の由来という説がある。", variation: "同じ構成でジンをウイスキーに変えると「ジョン・コリンズ」と呼び名が変わる。", tip: "「コリンズグラス」という専用の細長いグラスの名の由来にもなった一杯。" },
       color: "#eef2ee", look: "透明感のある淡い黄色。細かい泡が立つ",
       glass: "highball", carbonated: true },
     { id: "cuba_libre", name: "キューバリバー", base: "rum", genre: "cocktail",
@@ -554,7 +585,7 @@
       line: "ラムコークとしても親しまれる、世界的な定番",
       recipe: "ラム45ml、コーラ120ml、ライム",
       trivia: "キューバ独立戦争のスローガン「自由なキューバ」が名前の由来とされる、世界中のバーにある定番オーダー",
-      triviaLong: "単にラムとコーラだけの「ラムコーク」と呼ぶ場合はライムを省くこともあるが、正式にはライムを搾るのが本来のレシピ。キューバでは自国産のラムとコーラで作ることに誇りを持つバーも多い。",
+      triviaLong: { origin: "キューバ独立戦争のスローガン「自由なキューバ」が名前の由来とされる。", variation: "単に「ラムコーク」と呼ぶ場合はライムを省くこともあるが、正式にはライムを搾るのが本来のレシピ。", tip: "キューバでは自国産のラムとコーラで作ることに誇りを持つバーも多い。" },
       color: "#3a2013", look: "コーラそのものの濃い茶色",
       glass: "highball", carbonated: true },
     { id: "white_russian", name: "ホワイトルシアン", base: "vodka", genre: "cocktail",
@@ -562,7 +593,7 @@
       line: "デザート感覚で飲める、まろやかな一杯",
       recipe: "ウォッカ30ml、コーヒーリキュール30ml、生クリーム(または牛乳)適量",
       trivia: "映画「ビッグ・リボウスキ」の主人公が愛飲したことで、公開後に再びブームになった一杯",
-      triviaLong: "乳製品を使わない「ブラックルシアン」が先に存在し、そこに生クリームを加えたのがホワイトルシアンという成り立ち。生クリームを浮かせる層構造で提供する店もある。",
+      triviaLong: { origin: "映画「ビッグ・リボウスキ」の主人公が愛飲したことで、公開後に再びブームになった一杯。", variation: "乳製品を使わない「ブラックルシアン」が先に存在し、そこに生クリームを加えたのがホワイトルシアン。", tip: "生クリームを最後にそっと浮かせると、層になった見た目も楽しめる。" },
       color: "#c9a37a", look: "クリーム色でコーヒー牛乳のような色合い",
       glass: "rock", carbonated: false },
     { id: "mimosa", name: "ミモザ", base: "other", genre: "cocktail",
@@ -570,7 +601,7 @@
       line: "軽やかな泡が心地よい、乾杯にぴったりの一杯",
       recipe: "スパークリングワイン、オレンジジュースを1:1で",
       trivia: "名前は同じ色の花「ミモザ」から。ブランチの定番として世界的に定着している",
-      triviaLong: "オレンジジュースとスパークリングワインの比率を変えた「バックス・フィズ」という近縁のカクテルもある。ブランチメニューの定番として、ピッチャーで提供されることも多い。",
+      triviaLong: { origin: "名前は同じ色の花「ミモザ」から。ブランチの定番として世界的に定着している。", variation: "オレンジジュースの比率を増やした「バックス・フィズ」という近縁のカクテルもある。", tip: "スパークリングワインは冷やしすぎず、少し温度を上げた方が香りが立つ。" },
       color: "#f2b84a", look: "淡いオレンジ色で細かい泡が立つ",
       glass: "coupe", carbonated: true },
     { id: "long_island_iced_tea", name: "ロングアイランドアイスティー", base: "other", genre: "cocktail",
@@ -578,7 +609,7 @@
       line: "紅茶に見えて実は強い、通も唸る一杯",
       recipe: "ジン・ウォッカ・ラム・テキーラ各15ml、コアントロー15ml、レモンジュース、コーラで満たす",
       trivia: "見た目は紅茶そっくりだが、実は5種類のお酒が入った、バーの定番オーダーの一つ",
-      triviaLong: "コーラで割ることで紅茶のような色と泡立ちを再現しているが、アルコール度数は通常のカクテルの数倍になることもあるため要注意。バーによってレシピの配合や使うお酒の種類が大きく異なる。",
+      triviaLong: { origin: "見た目は紅茶そっくりだが、実は5種類のお酒が入った、バーの定番オーダーの一つ。", variation: "バーによってレシピの配合や使うお酒の種類が大きく異なる。", tip: "アルコール度数は通常のカクテルの数倍になることもあるため、ペース配分に注意。" },
       color: "#3a2410", look: "紅茶のような濃い茶色",
       glass: "highball", carbonated: true },
 
@@ -587,7 +618,7 @@
       line: "甘くて飲みやすい、日本のバー屈指の定番",
       recipe: "クレームドカシス45ml、オレンジジュースで満たす",
       trivia: "カシスリキュールをベースにした、日本のバー・居酒屋で最も頼まれる一杯の一つ",
-      triviaLong: "フランスのディジョン地方が本場のクレームドカシスは、白ワインと合わせる「キール」にも使われる万能なリキュール。オレンジジュースの代わりにグレープフルーツにすると別の一杯になる。",
+      triviaLong: { origin: "カシスリキュールをベースにした、日本のバー・居酒屋で最も頼まれる一杯の一つ。", variation: "フランスのディジョン地方が本場のクレームドカシスは、白ワインと合わせる「キール」にも使われる。", tip: "オレンジジュースの代わりにグレープフルーツにすると、また違った一杯になる。" },
       color: "#c23a5a", look: "鮮やかな赤紫色",
       glass: "highball", carbonated: false },
     { id: "cassis_soda", name: "カシスソーダ", base: "liqueur", genre: "cocktail",
@@ -595,7 +626,7 @@
       line: "すっきり飲める、食事にも合わせやすい一杯",
       recipe: "クレームドカシス45ml、ソーダで満たす",
       trivia: "カシスオレンジよりすっきりした甘さで、食中酒としても選ばれる定番",
-      triviaLong: "甘さを抑えたい時はソーダの量を増やすだけで簡単に調整できる、アレンジのしやすさも魅力。ライムを軽く搾ると香りが引き締まる。",
+      triviaLong: { origin: "カシスオレンジよりすっきりした甘さで、食中酒としても選ばれる定番。", variation: "甘さを抑えたい時はソーダの量を増やすだけで簡単に調整できる。", tip: "ライムを軽く搾ると、香りがぐっと引き締まる。" },
       color: "#c23a6a", look: "淡い赤紫色で細かい泡が立つ",
       glass: "highball", carbonated: true },
     { id: "cassis_oolong", name: "カシスウーロン", base: "liqueur", genre: "cocktail",
@@ -603,7 +634,7 @@
       line: "和のテイストが効いた、居酒屋でも人気の一杯",
       recipe: "クレームドカシス45ml、烏龍茶で満たす",
       trivia: "烏龍茶とカシスの組み合わせは日本発祥ともいわれ、居酒屋メニューの定番になっている",
-      triviaLong: "焼酎ベースで作られることも多く、居酒屋メニューではウーロンハイの派生として扱われることもある一杯。烏龍茶の銘柄によって渋みの出方が変わる。",
+      triviaLong: { origin: "烏龍茶とカシスの組み合わせは日本発祥ともいわれ、居酒屋メニューの定番になっている。", variation: "焼酎ベースで作られることも多く、ウーロンハイの派生として扱われることもある。", tip: "烏龍茶の銘柄によって渋みの出方が変わるので、好みで選び分けても面白い。" },
       color: "#5a2e28", look: "烏龍茶の茶色にほんのり赤みが差す",
       glass: "highball", carbonated: false },
     { id: "kahlua_milk", name: "カルーアミルク", base: "liqueur", genre: "cocktail",
@@ -611,7 +642,7 @@
       line: "コーヒー牛乳のような、甘党に人気の一杯",
       recipe: "カルーア(コーヒーリキュール)45ml、牛乳で満たす",
       trivia: "デザート感覚で飲める甘口カクテルの代表格。お酒が苦手な人の入り口としても定番",
-      triviaLong: "カルーアの代わりに他のコーヒーリキュールを使っても成立する、懐の深いレシピ。牛乳を生クリームに変えるとよりデザート感の強い仕上がりになる。",
+      triviaLong: { origin: "デザート感覚で飲める甘口カクテルの代表格。お酒が苦手な人の入り口としても定番。", variation: "カルーアの代わりに他のコーヒーリキュールを使っても成立する懐の深いレシピ。", tip: "牛乳を生クリームに変えると、よりデザート感の強い仕上がりになる。" },
       color: "#c9a37a", look: "コーヒー牛乳のような薄茶色",
       glass: "rock", carbonated: false },
     { id: "fuzzy_navel", name: "ファジーネーブル", base: "liqueur", genre: "cocktail",
@@ -619,7 +650,7 @@
       line: "桃の香りが優しい、飲みやすさ抜群の一杯",
       recipe: "ピーチリキュール45ml、オレンジジュースで満たす",
       trivia: "名前は「あいまいなおへそ」という意味の俗語から。甘くフルーティで日本でも根強い人気",
-      triviaLong: "「ファジー」はピーチの産毛を、「ネーブル」はオレンジの品種を指しており、2つの果実のイメージをそのまま名前にしたユニークな由来を持つ。ウォッカを少量加える派生レシピもある。",
+      triviaLong: { origin: "名前は「あいまいなおへそ」という意味の俗語から。甘くフルーティで日本でも根強い人気。", variation: "「ファジー」はピーチの産毛を、「ネーブル」はオレンジの品種を指している。", tip: "ウォッカを少量加える派生レシピもあり、キレのある後味になる。" },
       color: "#f2924a", look: "淡いオレンジ色",
       glass: "highball", carbonated: false },
     { id: "spumoni", name: "スプモーニ", base: "liqueur", genre: "cocktail",
@@ -627,7 +658,7 @@
       line: "ほろ苦さと爽快感が心地よい、通好みの一杯",
       recipe: "カンパリ30ml、グレープフルーツジュース、ソーダで満たす",
       trivia: "イタリア語で「泡立つ」という意味。ほろ苦さとグレープフルーツの爽快感が人気の理由",
-      triviaLong: "カンパリ・グレープフルーツ・ソーダというシンプルな構成ながら、比率の違いで印象が大きく変わるため店ごとの個性が出やすい一杯。イタリアでは食前酒として親しまれている。",
+      triviaLong: { origin: "イタリア語で「泡立つ」という意味。ほろ苦さとグレープフルーツの爽快感が人気の理由。", variation: "カンパリ・グレープフルーツ・ソーダの比率の違いで、店ごとの個性が出やすい一杯。", tip: "イタリアでは食前酒として親しまれ、食欲を高める役割も持つ。" },
       color: "#e8724a", look: "オレンジがかった赤色で細かい泡が立つ",
       glass: "highball", carbonated: true },
     { id: "salty_dog", name: "ソルティードッグ", base: "vodka", genre: "cocktail",
@@ -635,7 +666,7 @@
       line: "グラス縁の塩が味を引き締める、さっぱりした一杯",
       recipe: "ウォッカ45ml、グレープフルーツジュースで満たす。グラスの縁に塩",
       trivia: "「Salty Dog」は元々船員を指す俗語。グラス縁の塩がグレープフルーツの甘みを引き締める",
-      triviaLong: "グレープフルーツジュースをオレンジジュースに変え、塩を省くと「スクリュードライバー」に近い味わいになる。塩を舐めながら飲むか、混ぜて飲むかは好み次第とされる。",
+      triviaLong: { origin: "「Salty Dog」は元々船員を指す俗語。グラス縁の塩が味を引き締める。", variation: "グレープフルーツジュースをオレンジジュースに変え、塩を省くと「スクリュードライバー」に近い味わいになる。", tip: "塩を舐めながら飲むか、混ぜて飲むかは好み次第。まずは舐めながら試すのがおすすめ。" },
       color: "#f2c76a", look: "淡い黄色。グラス縁の塩が白く際立つ",
       glass: "highball", carbonated: false }
   ];
@@ -692,6 +723,7 @@
   var currentUser = null; // ログイン中はSupabaseのuserオブジェクト、未ログインならnull
 
   var stock = [];
+  var loadError = false; // ストック取得に失敗した時にtrue。スタート画面で警告表示に使う
 
   // ログイン中ユーザーの記録をサーバーから取得してstockに反映
   async function loadStockFromServer() {
@@ -701,18 +733,20 @@
       stock = res.data.map(function (row) {
         return { drinkId: row.drink_id, timestamp: row.created_at, preference: row.preference };
       });
+      loadError = false;
     } catch (e) {
       stock = [];
+      loadError = true;
     }
   }
 
   // ストックの記録から自動判定する実績バッジ
   var BADGES = [
-    { id: "first", label: "はじめの一杯", desc: "ストックに1杯記録する", check: function (s) { return s.length >= 1; } },
-    { id: "five", label: "5杯記録", desc: "ストックに5杯記録する", check: function (s) { return s.length >= 5; } },
-    { id: "ten", label: "10杯記録", desc: "ストックに10杯記録する", check: function (s) { return s.length >= 10; } },
-    { id: "twenty", label: "20杯記録", desc: "ストックに20杯記録する", check: function (s) { return s.length >= 20; } },
-    { id: "bases", label: "全ベース制覇", desc: "ジン/ウイスキー/ラム/ウォッカ/テキーラ/リキュールを1杯ずつ記録する", check: function (s) {
+    { id: "first", label: "はじめの一杯", desc: "ストックに1杯記録する", rank: "bronze", check: function (s) { return s.length >= 1; } },
+    { id: "five", label: "5杯記録", desc: "ストックに5杯記録する", rank: "bronze", check: function (s) { return s.length >= 5; } },
+    { id: "ten", label: "10杯記録", desc: "ストックに10杯記録する", rank: "silver", check: function (s) { return s.length >= 10; } },
+    { id: "twenty", label: "20杯記録", desc: "ストックに20杯記録する", rank: "gold", check: function (s) { return s.length >= 20; } },
+    { id: "bases", label: "全ベース制覇", desc: "ジン/ウイスキー/ラム/ウォッカ/テキーラ/リキュールを1杯ずつ記録する", rank: "silver", check: function (s) {
       var bases = {};
       s.forEach(function (log) {
         var d = DRINKS.find(function (x) { return x.id === log.drinkId; });
@@ -720,32 +754,32 @@
       });
       return Object.keys(bases).length >= Object.keys(BASE_LABEL).length - 1; // "その他"を除く
     }},
-    { id: "explorer", label: "探検家(15種)", desc: "15種類以上の異なるお酒を記録する", check: function (s) {
+    { id: "explorer", label: "探検家(15種)", desc: "15種類以上の異なるお酒を記録する", rank: "gold", check: function (s) {
       var ids = {};
       s.forEach(function (log) { ids[log.drinkId] = true; });
       return Object.keys(ids).length >= 15;
     }},
-    { id: "complete", label: "コンプリート", desc: "登録されている全" + DRINKS.length + "種類を記録する", check: function (s) {
+    { id: "complete", label: "コンプリート", desc: "登録されている全" + DRINKS.length + "種類を記録する", rank: "gold", check: function (s) {
       var ids = {};
       s.forEach(function (log) { ids[log.drinkId] = true; });
       return Object.keys(ids).length >= DRINKS.length;
     }},
-    { id: "sweet_tooth", label: "甘党", desc: "甘口寄りのお酒を5杯記録する", check: function (s) {
+    { id: "sweet_tooth", label: "甘党", desc: "甘口寄りのお酒を5杯記録する", rank: "bronze", check: function (s) {
       return countMatchingDrinks(s, function (d) { return d.tags.sweetness > 0; }) >= 5;
     }},
-    { id: "dry_lover", label: "辛口党", desc: "辛口寄りのお酒を5杯記録する", check: function (s) {
+    { id: "dry_lover", label: "辛口党", desc: "辛口寄りのお酒を5杯記録する", rank: "bronze", check: function (s) {
       return countMatchingDrinks(s, function (d) { return d.tags.sweetness < 0; }) >= 5;
     }},
-    { id: "favorite_found", label: "推し発見", desc: "「好み」評価を3杯記録する", check: function (s) {
+    { id: "favorite_found", label: "推し発見", desc: "「好み」評価を3杯記録する", rank: "bronze", check: function (s) {
       return s.filter(function (log) { return log.preference === 3; }).length >= 3;
     }},
-    { id: "repeater", label: "リピーター", desc: "同じお酒を3回記録する", check: function (s) {
+    { id: "repeater", label: "リピーター", desc: "同じお酒を3回記録する", rank: "silver", check: function (s) {
       var counts = {};
       s.forEach(function (log) { counts[log.drinkId] = (counts[log.drinkId] || 0) + 1; });
       for (var key in counts) { if (counts[key] >= 3) return true; }
       return false;
     }},
-    { id: "glass_master", label: "グラス制覇", desc: "ロック/ハイボール/クープ/マグをすべて記録する", check: function (s) {
+    { id: "glass_master", label: "グラス制覇", desc: "ロック/ハイボール/クープ/マグをすべて記録する", rank: "silver", check: function (s) {
       var glasses = {};
       s.forEach(function (log) {
         var d = DRINKS.find(function (x) { return x.id === log.drinkId; });
@@ -755,10 +789,10 @@
       DRINKS.forEach(function (d) { allGlasses[d.glass] = true; });
       return Object.keys(glasses).length >= Object.keys(allGlasses).length;
     }},
-    { id: "carbonated_fan", label: "炭酸党", desc: "炭酸入りのお酒を5杯記録する", check: function (s) {
+    { id: "carbonated_fan", label: "炭酸党", desc: "炭酸入りのお酒を5杯記録する", rank: "bronze", check: function (s) {
       return countMatchingDrinks(s, function (d) { return d.carbonated; }) >= 5;
     }},
-    { id: "night_owl", label: "深夜の一杯", desc: "深夜0時〜4時に記録する", check: function (s) {
+    { id: "night_owl", label: "深夜の一杯", desc: "深夜0時〜4時に記録する", rank: "silver", check: function (s) {
       return s.some(function (log) {
         var h = new Date(log.timestamp).getHours();
         return h >= 0 && h < 4;
@@ -777,6 +811,21 @@
     var earned = {};
     BADGES.forEach(function (b) { if (b.check(s)) earned[b.id] = true; });
     return earned;
+  }
+
+  // ログイン中かつストックに無いお酒かどうか(未挑戦バッジの表示判定に使用)
+  function isUntried(drinkId) {
+    if (!currentUser) return false;
+    return !stock.some(function (log) { return log.drinkId === drinkId; });
+  }
+
+  var RANK_LABEL = { bronze: "ブロンズ", silver: "シルバー", gold: "ゴールド" };
+  // 獲得数から総合ランクを判定(全14個中)
+  function overallRank(earnedCount) {
+    if (earnedCount >= 12) return "ゴールド";
+    if (earnedCount >= 9) return "シルバー";
+    if (earnedCount >= 5) return "ブロンズ";
+    return "見習い";
   }
 
   /* ============================================================
@@ -890,8 +939,79 @@
     });
   }
 
+  function renderNewPassword(root) {
+    root.appendChild(topbar(false));
+    root.appendChild(el('<h2 style="text-align:center;">新しいパスワードを設定</h2>'));
+
+    var pwInput = el('<input class="search-input" type="password" placeholder="新しいパスワード(6文字以上)" autocomplete="new-password" />');
+    root.appendChild(pwInput);
+
+    var errBox = el('<div class="err" style="text-align:center;min-height:14px;margin-top:8px;"></div>');
+    root.appendChild(errBox);
+
+    var submitBtn = el('<button class="primary-btn" style="margin-top:4px;">設定する</button>');
+    submitBtn.addEventListener("click", async function () {
+      var password = pwInput.value;
+      if (!password || password.length < 6) {
+        errBox.textContent = "6文字以上のパスワードを入力してください";
+        return;
+      }
+      submitBtn.disabled = true;
+      submitBtn.textContent = "設定中...";
+      var result = await supabaseClient.auth.updateUser({ password: password });
+      submitBtn.disabled = false;
+      submitBtn.textContent = "設定する";
+      if (result.error) {
+        errBox.textContent = result.error.message;
+        return;
+      }
+      currentUser = result.data.user;
+      await loadStockFromServer();
+      navigate("start");
+    });
+    root.appendChild(submitBtn);
+  }
+
   function renderAuth(root) {
     root.appendChild(topbar(true));
+
+    if (state.authMode === "reset") {
+      root.appendChild(el('<h2 style="text-align:center;">パスワード再設定</h2>'));
+      root.appendChild(el('<div class="result-tagline">登録したメールアドレスに再設定用のリンクを送ります</div>'));
+
+      var resetEmailInput = el('<input class="search-input" type="email" placeholder="メールアドレス" autocomplete="email" />');
+      root.appendChild(resetEmailInput);
+
+      var resetErrBox = el('<div class="err" style="text-align:center;min-height:14px;margin-top:8px;"></div>');
+      root.appendChild(resetErrBox);
+
+      var resetBtn = el('<button class="primary-btn" style="margin-top:4px;">送信する</button>');
+      resetBtn.addEventListener("click", async function () {
+        var email = resetEmailInput.value.trim();
+        if (!email) {
+          resetErrBox.textContent = "メールアドレスを入力してください";
+          return;
+        }
+        resetBtn.disabled = true;
+        resetBtn.textContent = "送信中...";
+        var result = await supabaseClient.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin });
+        resetBtn.disabled = false;
+        resetBtn.textContent = "送信する";
+        if (result.error) {
+          resetErrBox.textContent = result.error.message;
+          return;
+        }
+        resetErrBox.style.color = "var(--text-secondary)";
+        resetErrBox.textContent = "再設定用のメールを送信しました。メール内のリンクを開いてください";
+      });
+      root.appendChild(resetBtn);
+
+      var backToLogin = el('<button class="ghost-btn">ログイン画面に戻る</button>');
+      backToLogin.addEventListener("click", function () { state.authMode = "login"; render(); });
+      root.appendChild(backToLogin);
+      return;
+    }
+
     root.appendChild(el(
       '<h2 style="text-align:center;">' + (state.authMode === "signup" ? "新規登録" : "ログイン") + "</h2>"
     ));
@@ -939,6 +1059,12 @@
     });
     root.appendChild(submitBtn);
 
+    if (state.authMode === "login") {
+      var forgotBtn = el('<button class="ghost-btn">パスワードをお忘れですか?</button>');
+      forgotBtn.addEventListener("click", function () { state.authMode = "reset"; render(); });
+      root.appendChild(forgotBtn);
+    }
+
     var toggleBtn = el(
       '<button class="ghost-btn">' +
       (state.authMode === "signup" ? "アカウントをお持ちの方はこちら" : "はじめての方はこちら(新規登録)") +
@@ -959,7 +1085,11 @@
       b.addEventListener("click", goBack);
       wrap.appendChild(b);
     }
-    var logo = el('<button class="logo">BAR LOG</button>');
+    var logo = el(
+      '<button class="logo"><svg class="home-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" ' +
+      'stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+      '<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>BAR LOG</button>'
+    );
     logo.addEventListener("click", confirmGoHome);
     wrap.appendChild(logo);
     return wrap;
@@ -1017,7 +1147,11 @@
 
     var earned = earnedBadgeIds(stock);
     var earnedCount = Object.keys(earned).length;
-    root.appendChild(el('<div class="result-tagline">' + earnedCount + " / " + BADGES.length + " 達成</div>"));
+    var rank = overallRank(earnedCount);
+    root.appendChild(el(
+      '<div class="result-tagline">' + earnedCount + " / " + BADGES.length + " 達成" +
+      '<span class="rank-summary rank-' + rank + '">' + rank + "</span></div>"
+    ));
 
     var card = el('<div class="card"></div>');
     BADGES.forEach(function (b) {
@@ -1026,7 +1160,8 @@
         '<div class="log-row" style="cursor:default;"><div>' +
         '<div class="log-name">' + b.label + "</div>" +
         '<div class="log-meta">' + b.desc + "</div></div>" +
-        '<span class="badge-chip' + (isEarned ? " earned" : " locked") + '">' + (isEarned ? "達成" : "未達成") + "</span></div>"
+        '<span class="badge-chip rank-' + b.rank + (isEarned ? " earned" : " locked") + '">' +
+        (isEarned ? RANK_LABEL[b.rank] : "未達成") + "</span></div>"
       ));
     });
     root.appendChild(card);
@@ -1065,6 +1200,31 @@
     var last = stock.length ? stock[stock.length - 1] : null;
     var lastDrink = last ? DRINKS.find(function (d) { return d.id === last.drinkId; }) : null;
 
+    root.appendChild(el(
+      '<div class="section-label">記録' +
+      (currentUser ? "" : '<span class="carb-badge" style="margin-left:6px;">ログインで利用可能</span>') +
+      "</div>"
+    ));
+
+    if (currentUser && loadError) {
+      var errCard = el(
+        '<div class="card" style="text-align:center;">' +
+        '<div style="font-size:13px;color:var(--text-secondary);margin-bottom:10px;">記録の読み込みに失敗しました。電波の良い場所でもう一度お試しください</div>' +
+        "</div>"
+      );
+      var retryBtn = el('<button class="ghost-btn" style="border:0.5px solid var(--border);">再読み込み</button>');
+      retryBtn.addEventListener("click", async function () {
+        retryBtn.disabled = true;
+        retryBtn.textContent = "読み込み中...";
+        await loadStockFromServer();
+        render();
+      });
+      errCard.appendChild(retryBtn);
+      root.appendChild(errCard);
+    }
+
+    var recordSection = el('<div style="opacity:' + (currentUser ? "1" : "0.55") + ';display:flex;flex-direction:column;gap:20px;"></div>');
+
     var stats = el('<div class="stat-grid"></div>');
     stats.appendChild(el(
       '<div class="stat-card"><div class="stat-label">記録数</div><div class="stat-value">' + stock.length + " 件</div></div>"
@@ -1073,7 +1233,7 @@
       '<div class="stat-card"><div class="stat-label">最近の記録</div><div class="stat-value" style="font-size:15px">' +
       (lastDrink ? lastDrink.name : "ー") + "</div></div>"
     ));
-    root.appendChild(stats);
+    recordSection.appendChild(stats);
 
     var recordNav = el('<div class="nav-list"></div>');
 
@@ -1086,15 +1246,18 @@
 
     var earned = earnedBadgeIds(stock);
     var earnedCount = Object.keys(earned).length;
+    var startRank = overallRank(earnedCount);
     var badgeCard = el(
-      '<button class="nav-item"><div><div class="nav-title">達成バッジ</div>' +
+      '<button class="nav-item"><div><div class="nav-title">達成バッジ' +
+      '<span class="rank-summary rank-' + startRank + '">' + startRank + "</span></div>" +
       '<div class="nav-sub">' + earnedCount + " / " + BADGES.length + " 達成</div></div>" +
       '<span class="row-arrow">&rsaquo;</span></button>'
     );
     badgeCard.addEventListener("click", function () { navigate("badges"); });
     recordNav.appendChild(badgeCard);
 
-    root.appendChild(recordNav);
+    recordSection.appendChild(recordNav);
+    root.appendChild(recordSection);
 
     var authBtn = el('<button class="ghost-btn" style="margin-top:4px;">' + (currentUser ? "ログアウト" : "ログイン") + "</button>");
     authBtn.addEventListener("click", function () {
@@ -1189,7 +1352,9 @@
         '<div class="swatch swatch-sm glass-' + d.glass + '" style="background:' + swatchBg(d) + ';"></div>' +
         '<div>' +
         (idx === 0 ? '<span class="badge">一番近い</span><br>' : "") +
-        '<div class="drink-name">' + d.name + (d.carbonated ? ' <span class="carb-badge">炭酸</span>' : "") + "</div>" +
+        '<div class="drink-name">' + d.name +
+        (d.carbonated ? ' <span class="carb-badge">炭酸</span>' : "") +
+        (isUntried(d.id) ? ' <span class="untried-badge">未挑戦</span>' : "") + "</div>" +
         '<div class="drink-line">' + d.line + "</div></div>" +
         '<span class="row-arrow">&rsaquo;</span></button>'
       );
@@ -1207,7 +1372,7 @@
     { key: "mood", left: "静か", right: "賑やか" }
   ];
   function combinedTraitsBox(d) {
-    var wrap = el('<div class="info-box"></div>');
+    var wrap = el('<div class="info-box" style="border-left:3px solid ' + d.color + ';"></div>');
     function section(label, axes) {
       wrap.appendChild(el('<div class="info-label">' + label + "</div>"));
       axes.forEach(function (axis) {
@@ -1216,7 +1381,7 @@
         wrap.appendChild(el(
           '<div class="trait-row">' +
           '<div class="trait-labels"><span>' + axis.left + '</span><span>' + axis.right + "</span></div>" +
-          '<div class="trait-track"><div class="trait-dot" style="left:' + percent + '%;"></div></div>' +
+          '<div class="trait-track"><div class="trait-dot" style="left:' + percent + '%;background:' + d.color + ';"></div></div>' +
           "</div>"
         ));
       });
@@ -1232,7 +1397,8 @@
     var d = DRINKS.find(function (x) { return x.id === state.detailId; });
 
     root.style.backgroundImage =
-      "radial-gradient(ellipse 100% 260px at 50% 0%, " + hexToRgba(d.color, 0.16) + ", transparent 70%)";
+      "radial-gradient(ellipse 120% 480px at 50% 0%, " + hexToRgba(d.color, 0.32) + ", " +
+      hexToRgba(d.color, 0.08) + " 55%, transparent 85%)";
     root.style.marginTop = "-24px";
     root.style.paddingTop = "24px";
 
@@ -1244,15 +1410,15 @@
 
     root.appendChild(combinedTraitsBox(d));
     root.appendChild(el(
-      '<div class="info-box" style="display:flex;align-items:center;gap:16px;">' +
+      '<div class="info-box" style="display:flex;align-items:center;gap:16px;border-left:3px solid ' + d.color + ';">' +
       '<div class="swatch swatch-lg glass-' + d.glass + '" style="background:' + swatchBg(d) + ';"></div>' +
       '<div><div class="info-label">見た目</div>' + d.look + "</div></div>"
     ));
     root.appendChild(el(
-      '<div class="info-box"><div class="info-label">' + infoLabel1(d) + "</div>" + d.recipe + "</div>"
+      '<div class="info-box" style="border-left:3px solid ' + d.color + ';"><div class="info-label">' + infoLabel1(d) + "</div>" + d.recipe + "</div>"
     ));
     var triviaBox = el(
-      '<div class="trivia-quote"><div class="info-label">豆知識</div>' + d.trivia + "</div>"
+      '<div class="trivia-quote" style="border-left-color:' + d.color + ';"><div class="info-label">豆知識</div>' + d.trivia + "</div>"
     );
     root.appendChild(triviaBox);
 
@@ -1265,7 +1431,13 @@
           moreBox = null;
           moreToggle.innerHTML = "もっと知る &darr;";
         } else {
-          moreBox = el('<div class="trivia-quote" style="margin-top:8px;">' + d.triviaLong + "</div>");
+          moreBox = el(
+            '<div class="info-box" style="margin-top:8px;border-left:3px solid ' + d.color + ';">' +
+            '<div class="trivia-section"><div class="trivia-section-label">由来</div>' + d.triviaLong.origin + "</div>" +
+            '<div class="trivia-section"><div class="trivia-section-label">バリエーション</div>' + d.triviaLong.variation + "</div>" +
+            '<div class="trivia-section"><div class="trivia-section-label">飲み方のこだわり</div>' + d.triviaLong.tip + "</div>" +
+            "</div>"
+          );
           moreToggle.after(moreBox);
           moreToggle.innerHTML = "閉じる &uarr;";
         }
@@ -1444,7 +1616,9 @@
         var row = el(
           '<button class="log-row"><div style="display:flex;align-items:center;gap:10px;">' +
           '<div class="swatch swatch-sm glass-' + d.glass + '" style="background:' + swatchBg(d) + ';"></div>' +
-          '<div><div class="log-name">' + d.name + (d.carbonated ? ' <span class="carb-badge">炭酸</span>' : "") + "</div>" +
+          '<div><div class="log-name">' + d.name +
+          (d.carbonated ? ' <span class="carb-badge">炭酸</span>' : "") +
+          (isUntried(d.id) ? ' <span class="untried-badge">未挑戦</span>' : "") + "</div>" +
           '<div class="log-meta">' + subLabel(d) + "</div></div></div>" +
           '<span class="row-arrow">&rsaquo;</span></button>'
         );
@@ -1512,6 +1686,7 @@
     var root = el('<div class="screen"></div>');
     app.appendChild(root);
     if (state.screen === "auth") renderAuth(root);
+    else if (state.screen === "newPassword") renderNewPassword(root);
     else if (state.screen === "start") renderStart(root);
     else if (state.screen === "badges") renderBadges(root);
     else if (state.screen === "genreSelect") renderGenreSelect(root);
@@ -1524,11 +1699,15 @@
 
   // 起動時にログイン済みかどうかを確認し、画面を出し分ける
   async function boot() {
-    var sessionRes = await supabaseClient.auth.getSession();
-    if (sessionRes.data && sessionRes.data.session) {
-      currentUser = sessionRes.data.session.user;
-      await loadStockFromServer();
-    } else {
+    try {
+      var sessionRes = await supabaseClient.auth.getSession();
+      if (sessionRes.data && sessionRes.data.session) {
+        currentUser = sessionRes.data.session.user;
+        await loadStockFromServer();
+      } else {
+        currentUser = null;
+      }
+    } catch (e) {
       currentUser = null;
     }
     state.screen = "start";
@@ -1545,6 +1724,9 @@
       render();
     } else if (event === "SIGNED_IN" && session) {
       currentUser = session.user;
+    } else if (event === "PASSWORD_RECOVERY") {
+      history = [];
+      navigate("newPassword");
     }
   });
 
