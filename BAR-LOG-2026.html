@@ -1,0 +1,1974 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BAR LOG</title>
+<meta name="description" content="気分を答えるだけで、今夜の一杯を5択で提案。飲んだ記録も残せるカクテル診断アプリ。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%A5%83%3C/text%3E%3C/svg%3E">
+<meta property="og:type" content="website">
+<meta property="og:title" content="BAR LOG">
+<meta property="og:description" content="気分を答えるだけで、今夜の一杯を5択で提案。飲んだ記録も残せるカクテル診断アプリ。">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="BAR LOG">
+<meta name="twitter:description" content="気分を答えるだけで、今夜の一杯を5択で提案。飲んだ記録も残せるカクテル診断アプリ。">
+<style>
+  /* ============================================================
+     THEME TOKENS — 黒×白のモノトーン。ダークがデフォルト、
+     OS側がライト指定の場合のみ反転する。
+     ============================================================ */
+  :root {
+    --bg: #000000;
+    --surface: #000000;
+    --surface-2: #141414;
+    --border: #333333;
+    --text-primary: #ffffff;
+    --text-secondary: #999999;
+    --text-muted: #666666;
+    --accent: #ffffff;
+    --accent-bg: #1a1a1a;
+    --accent2: #d1a35c;
+    --accent2-bg: rgba(209, 163, 92, 0.14);
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --bg: #ffffff;
+      --surface: #ffffff;
+      --surface-2: #f2f2f2;
+      --border: #cccccc;
+      --text-primary: #000000;
+      --text-secondary: #555555;
+      --text-muted: #888888;
+      --accent: #000000;
+      --accent-bg: #ededed;
+      --accent2: #a3742a;
+      --accent2-bg: rgba(163, 116, 42, 0.1);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #000000;
+    --surface: #000000;
+    --surface-2: #141414;
+    --border: #333333;
+    --text-primary: #ffffff;
+    --text-secondary: #999999;
+    --text-muted: #666666;
+    --accent: #ffffff;
+    --accent-bg: #1a1a1a;
+    --accent2: #d1a35c;
+    --accent2-bg: rgba(209, 163, 92, 0.14);
+  }
+
+  /* ============================================================
+     BASE / LAYOUT
+     ============================================================ */
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: "SF Mono", "JetBrains Mono", "Menlo", "Consolas",
+      "Hiragino Sans", "Yu Gothic Medium", "Yu Gothic", sans-serif;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+  }
+  #app {
+    width: 100%;
+    max-width: 420px;
+    min-height: 100vh;
+    padding: 24px 20px 60px;
+    overflow-x: auto;
+  }
+  @media (min-width: 640px) {
+    body {
+      align-items: center;
+      padding: 48px 20px;
+      background:
+        radial-gradient(circle at 15% 20%, rgba(209, 163, 92, 0.08), transparent 42%),
+        radial-gradient(circle at 85% 75%, rgba(209, 163, 92, 0.05), transparent 45%),
+        var(--bg);
+    }
+    #app {
+      min-height: auto;
+      max-height: 880px;
+      overflow-y: auto;
+      border: 0.5px solid var(--border);
+      border-radius: 26px;
+      box-shadow: 0 40px 100px rgba(0, 0, 0, 0.55);
+    }
+  }
+  h1, h2, h3 { font-weight: 500; margin: 0; }
+  p { margin: 0; line-height: 1.6; }
+  button {
+    font-family: inherit;
+    cursor: pointer;
+    border: 0.5px solid var(--border);
+    background: var(--surface);
+    color: var(--text-primary);
+    border-radius: 10px;
+    transition: background 0.15s, transform 0.1s;
+  }
+  button:active { transform: scale(0.98); }
+  button:disabled {
+    opacity: 0.4; cursor: not-allowed; pointer-events: none;
+  }
+  button:disabled:active { transform: none; }
+  .screen { display: flex; flex-direction: column; gap: 20px; animation: screenIn 0.2s ease; }
+  @keyframes screenIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .topbar { display: flex; align-items: center; gap: 12px; }
+  .back-btn {
+    width: 36px; height: 36px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; padding: 0; flex-shrink: 0;
+  }
+  .logo {
+    font-size: 11px; letter-spacing: 0.1em; color: var(--text-secondary);
+    background: var(--surface); border: 0.5px solid var(--border); border-radius: 20px;
+    padding: 6px 14px 6px 10px; cursor: pointer; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .logo:active { background: var(--surface-2); color: var(--text-primary); }
+  .home-icon { flex-shrink: 0; }
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6);
+    display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 24px;
+  }
+  .modal-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: 14px; padding: 20px; max-width: 320px; width: 100%; }
+  .modal-text { font-size: 13px; color: var(--text-primary); line-height: 1.6; margin-bottom: 16px; text-align: center; }
+  .modal-actions { display: flex; gap: 10px; }
+  .modal-cancel { flex: 1; padding: 12px 0; font-size: 13px; }
+  .modal-confirm { flex: 1; padding: 12px 0; font-size: 13px; background: var(--accent); color: var(--bg); border: none; }
+
+  /* ============================================================
+     SHARED COMPONENTS
+     ============================================================ */
+  .card {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: 14px;
+    padding: 18px;
+  }
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .stat-card { background: var(--surface-2); border-radius: 12px; padding: 14px; }
+  .stat-label { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
+  .stat-value { font-size: 20px; font-weight: 500; }
+  .nav-list { display: flex; flex-direction: column; gap: 10px; }
+  .nav-item { display: flex; align-items: center; gap: 14px; padding: 16px 14px; text-align: left; width: 100%; }
+  .nav-item:disabled { opacity: 0.4; cursor: default; }
+  .row-arrow { color: var(--text-muted); font-size: 16px; margin-left: auto; flex-shrink: 0; }
+  .nav-title { font-size: 14px; font-weight: 500; }
+  .nav-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .progress { display: flex; gap: 4px; }
+  .dot { height: 4px; border-radius: 2px; flex: 1; background: var(--border); }
+  .dot.active { background: var(--accent2); }
+  .q-title { font-size: 17px; font-weight: 500; text-align: center; margin: 8px 0 4px; }
+  .q-count { font-size: 12px; color: var(--text-muted); text-align: center; }
+  .option-btn { padding: 14px 16px; text-align: left; font-size: 14px; display: flex; align-items: center; gap: 10px; }
+  .option-btn:hover { background: var(--surface-2); }
+  .result-tagline { font-size: 12px; color: var(--text-secondary); text-align: center; margin-top: -8px; }
+  .drink-card { padding: 14px; border-radius: 12px; }
+  .drink-card.best { border: 1.5px solid var(--accent2); }
+  .badge {
+    display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 6px;
+    background: var(--accent2-bg); color: var(--accent2); margin-bottom: 6px;
+  }
+  .drink-name { font-size: 15px; font-weight: 500; margin-bottom: 3px; }
+  .drink-line { font-size: 12px; color: var(--text-secondary); }
+  .info-box {
+    background: var(--surface-2); border-radius: 12px; padding: 14px;
+    font-size: 12px; color: var(--text-secondary); line-height: 1.7;
+  }
+  .info-label { font-size: 11px; color: var(--text-muted); margin-bottom: 6px; letter-spacing: 0.05em; }
+  .trait-row + .trait-row { margin-top: 14px; }
+  .trait-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-secondary); margin-bottom: 6px; }
+  .trait-track { position: relative; height: 3px; background: var(--border); border-radius: 2px; }
+  .trait-dot { position: absolute; top: 50%; width: 11px; height: 11px; border-radius: 50%; background: var(--accent); transform: translate(-50%, -50%); }
+  .trait-divider { border-top: 0.5px solid var(--border); margin: 14px 0; }
+  .trivia-quote {
+    border-left: 2px solid var(--border); padding-left: 12px;
+    font-size: 12px; color: var(--text-secondary); line-height: 1.7;
+  }
+  .more-toggle {
+    background: none; border: none; padding: 4px 0 0 12px; font-size: 12px;
+    color: var(--accent2); text-align: left;
+  }
+  .trivia-section { font-size: 12px; color: var(--text-secondary); line-height: 1.7; }
+  .trivia-section + .trivia-section { margin-top: 12px; }
+  .trivia-section-label { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; letter-spacing: 0.05em; }
+  .swatch { flex-shrink: 0; border: 0.5px solid var(--border); }
+  /* グラスの形(サイズ非依存の形状) */
+  .glass-rock { border-radius: 2px 2px 6px 6px; }
+  .glass-highball { border-radius: 2px 2px 4px 4px; }
+  .glass-coupe { clip-path: polygon(0% 0%, 100% 0%, 58% 62%, 58% 100%, 42% 100%, 42% 62%); }
+  .glass-mug { border-radius: 3px 3px 8px 8px; position: relative; }
+  .glass-cup { border-radius: 50% 50% 45% 45%; }
+  .swatch-lg.glass-mug::after {
+    content: ""; position: absolute; right: -8px; top: 6px; width: 8px; height: 12px;
+    border: 2px solid var(--border); border-left: none; border-radius: 0 8px 8px 0;
+  }
+  /* 詳細画面用の大きいサイズ */
+  .swatch-lg.glass-rock { width: 30px; height: 28px; }
+  .swatch-lg.glass-highball { width: 18px; height: 44px; }
+  .swatch-lg.glass-coupe { width: 40px; height: 34px; }
+  .swatch-lg.glass-mug { width: 26px; height: 30px; }
+  .swatch-lg.glass-cup { width: 32px; height: 22px; }
+  /* 凡例用の中間サイズ */
+  .swatch-md.glass-rock { width: 20px; height: 24px; }
+  .swatch-md.glass-highball { width: 13px; height: 30px; }
+  .swatch-md.glass-coupe { width: 24px; height: 26px; }
+  .swatch-md.glass-mug { width: 18px; height: 22px; }
+  /* 一覧行用の小さいサイズ */
+  .swatch-sm.glass-rock { width: 14px; height: 18px; border-radius: 1px 1px 4px 4px; }
+  .swatch-sm.glass-highball { width: 9px; height: 22px; }
+  .swatch-sm.glass-coupe { width: 16px; height: 20px; }
+  .swatch-sm.glass-mug { width: 13px; height: 18px; border-radius: 1px 1px 4px 4px; }
+  .swatch-sm.glass-cup { width: 16px; height: 12px; }
+  .carb-badge {
+    display: inline-block; font-size: 10px; padding: 1px 6px; border-radius: 5px;
+    border: 0.5px solid var(--border); color: var(--text-muted); flex-shrink: 0;
+  }
+  .untried-badge {
+    display: inline-block; font-size: 10px; padding: 1px 6px; border-radius: 5px;
+    border: 0.5px solid var(--accent2); color: var(--accent2); flex-shrink: 0;
+  }
+  .legend-row { display: flex; gap: 16px; justify-content: center; padding: 2px 0 4px; }
+  .legend-item { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+  .legend-label { font-size: 11px; color: var(--text-secondary); }
+  .search-input {
+    width: 100%; padding: 12px 14px; font-size: 14px; font-family: inherit;
+    background: var(--surface); color: var(--text-primary);
+    border: 0.5px solid var(--border); border-radius: 10px;
+  }
+  .search-input::placeholder { color: var(--text-muted); }
+  .tab-row { display: flex; gap: 8px; }
+  .tab-btn { flex: 1; padding: 10px 0; font-size: 13px; }
+  .tab-btn.active { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 600; }
+  .chip-row { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { padding: 9px 14px; font-size: 12px; border-radius: 20px; }
+  .chip.active { background: var(--accent2-bg); color: var(--accent2); border-color: var(--accent2); font-weight: 600; }
+  .filter-group { margin-top: 10px; }
+  .filter-group-label { font-size: 11px; color: var(--text-muted); margin-bottom: 6px; }
+  .filter-reset { font-size: 12px; color: var(--text-secondary); padding: 6px 0; background: none; border: none; text-decoration: underline; }
+  .badge-chip {
+    display: inline-block; font-size: 11px; padding: 5px 12px; border-radius: 20px;
+    border: 0.5px solid var(--border);
+  }
+  .badge-chip.earned { background: var(--accent2-bg); color: var(--accent2); border-color: var(--accent2); }
+  .badge-chip.locked { color: var(--text-muted); }
+  .badge-chip.rank-bronze.earned { background: rgba(176, 141, 87, 0.16); color: #cf9f6e; border-color: #b08d57; }
+  .badge-chip.rank-silver.earned { background: rgba(201, 205, 212, 0.14); color: #d7dade; border-color: #9ea3ab; }
+  .badge-chip.rank-gold.earned { background: var(--accent2-bg); color: var(--accent2); border-color: var(--accent2); box-shadow: 0 0 10px rgba(209, 163, 92, 0.35); }
+  .rank-summary {
+    display: inline-block; font-size: 11px; padding: 3px 10px; border-radius: 8px; margin-left: 8px;
+  }
+  .rank-summary.rank-見習い { color: var(--text-muted); border: 0.5px solid var(--border); }
+  .rank-summary.rank-ブロンズ { color: #cf9f6e; border: 0.5px solid #b08d57; background: rgba(176, 141, 87, 0.14); }
+  .rank-summary.rank-シルバー { color: #d7dade; border: 0.5px solid #9ea3ab; background: rgba(201, 205, 212, 0.12); }
+  .rank-summary.rank-ゴールド { color: var(--accent2); border: 0.5px solid var(--accent2); background: var(--accent2-bg); box-shadow: 0 0 10px rgba(209, 163, 92, 0.35); }
+  .diagnosis-card {
+    background: var(--surface); border: 1px solid var(--accent2); border-radius: 14px;
+    padding: 20px; text-align: center;
+  }
+  .diagnosis-label { font-size: 11px; color: var(--accent2); letter-spacing: 0.1em; margin-bottom: 10px; }
+  .diagnosis-text { font-size: 15px; line-height: 1.8; margin-bottom: 16px; }
+  .share-btn { width: 100%; padding: 12px 0; font-size: 13px; color: var(--accent2); border-color: var(--accent2); }
+  .section-label { font-size: 11px; color: var(--text-muted); letter-spacing: 0.05em; margin-bottom: 2px; }
+  .empty { text-align: center; color: var(--text-muted); font-size: 13px; padding: 30px 0; }
+  .log-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 0; border-bottom: 0.5px solid var(--border);
+    width: 100%; text-align: left; background: none; border-left: none; border-right: none; border-top: none;
+    border-radius: 0;
+  }
+  .log-row:last-child { border-bottom: none; }
+  .log-row:hover { background: var(--surface-2); }
+  .log-name { font-size: 14px; }
+  .log-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .pref-pill { font-size: 11px; padding: 3px 9px; border-radius: 8px; background: var(--surface-2); color: var(--text-secondary); }
+  .pref-pill.good { color: var(--accent2); background: var(--accent2-bg); }
+  .primary-btn { width: 100%; padding: 17px; font-weight: 600; font-size: 15px; background: var(--accent); color: var(--bg); border: none; }
+  .ghost-btn { width: 100%; padding: 10px; font-size: 12px; color: var(--text-muted); background: none; border: none; }
+  .pref-row { display: flex; gap: 8px; }
+  .pref-btn { flex: 1; padding: 12px 0; font-size: 13px; }
+  .pref-btn.selected { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 600; }
+  .err { color: #c96; font-size: 12px; }
+</style>
+
+<style id="barlog-v6-reset">
+:root{--bg:#0b0b0c;--surface:#0b0b0c;--surface-2:#171719;--border:#29292c;--text-primary:#f5f5f2;--text-secondary:#aaa9a4;--text-muted:#73726e;--accent:#f5f5f2;--accent-bg:#1b1b1d;--accent2:#b9ff66;--accent2-bg:rgba(185,255,102,.09)}
+@media(prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#f7f7f5;--surface:#f7f7f5;--surface-2:#ececea;--border:#d9d9d5;--text-primary:#161616;--text-secondary:#686863;--text-muted:#92928d;--accent:#161616;--accent-bg:#e8e8e5;--accent2:#4f721d;--accent2-bg:rgba(79,114,29,.08)}}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue","Hiragino Sans","Yu Gothic",sans-serif;letter-spacing:0}
+#app{max-width:430px;padding:18px 18px calc(42px + env(safe-area-inset-bottom));overflow-x:hidden}
+.screen{gap:24px}.topbar{min-height:36px}.logo{padding:0;border:0;background:none;border-radius:0;font-size:13px;font-weight:750;letter-spacing:.14em;color:var(--text-primary)}
+.back-btn{width:36px;height:36px;border:0;background:var(--surface-2);font-size:23px}.card{border-color:var(--border);border-radius:18px}.nav-list{gap:10px}.nav-item{border:0;background:var(--surface-2);border-radius:18px;padding:17px 16px;min-height:72px}.nav-item:hover{background:var(--surface-2)}.nav-title{font-size:15px;font-weight:650}.nav-sub{font-size:12px;margin-top:4px;color:var(--text-secondary)}.row-arrow{font-size:20px;color:var(--text-muted)}
+.v6-kicker{font-size:12px;color:var(--text-muted);font-weight:650;letter-spacing:.08em;text-transform:uppercase}.v6-title{font-size:34px;line-height:1.12;letter-spacing:-.045em;font-weight:720;max-width:340px}.v6-copy{font-size:14px;color:var(--text-secondary);line-height:1.65;max-width:330px}.v6-hero{padding:16px 0 2px;display:flex;flex-direction:column;gap:12px}.v6-primary{width:100%;min-height:112px;padding:20px;border:0;border-radius:22px;background:var(--text-primary);color:var(--bg);text-align:left;display:flex;align-items:flex-end;justify-content:space-between}.v6-primary small{display:block;font-size:11px;opacity:.58;margin-bottom:7px;letter-spacing:.04em}.v6-primary strong{display:block;font-size:22px;letter-spacing:-.025em}.v6-primary .v6-go{font-size:27px;font-weight:300;line-height:1}.v6-secondary{width:100%;padding:17px 16px;border:0;border-radius:18px;background:var(--surface-2);text-align:left;display:flex;justify-content:space-between;align-items:center}.v6-secondary strong{font-size:15px}.v6-secondary span{font-size:12px;color:var(--text-secondary);display:block;margin-top:3px}.v6-section{font-size:12px;color:var(--text-muted);font-weight:650;margin-bottom:-10px}.v6-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}.v6-stat{background:var(--surface-2);border-radius:18px;padding:16px}.v6-stat-num{font-size:23px;font-weight:700;letter-spacing:-.03em}.v6-stat-label{font-size:11px;color:var(--text-muted);margin-top:5px}.v6-login{font-size:12px;color:var(--text-secondary);background:none;border:0;padding:4px 0;text-align:center;width:100%}
+.diagnosis-card{background:none;border:0;border-radius:0;padding:8px 0 0;text-align:left}.diagnosis-label{font-size:11px;color:var(--text-muted);letter-spacing:.08em;margin-bottom:10px;font-weight:650}.diagnosis-text{font-size:22px;line-height:1.48;letter-spacing:-.025em;font-weight:650;margin-bottom:14px}.share-btn{width:auto;padding:8px 0;border:0;background:none;color:var(--text-secondary);font-size:12px;text-decoration:underline;text-underline-offset:4px}.v6-results-head{display:flex;align-items:end;justify-content:space-between;margin-top:4px}.v6-results-head h2{font-size:25px;font-weight:720;letter-spacing:-.035em}.v6-results-head span{font-size:12px;color:var(--text-muted)}.v6-result-list{display:flex;flex-direction:column;border-top:1px solid var(--border)}.v6-drink{width:100%;border:0;border-bottom:1px solid var(--border);border-radius:0;background:none;padding:18px 2px;text-align:left;display:grid;grid-template-columns:28px 1fr auto;gap:12px;align-items:center}.v6-drink:hover{background:none}.v6-rank{font-size:12px;color:var(--text-muted);font-variant-numeric:tabular-nums}.v6-drink.best .v6-rank{color:var(--accent2);font-weight:700}.v6-drink-name{font-size:16px;font-weight:670;letter-spacing:-.015em}.v6-drink-line{font-size:12px;color:var(--text-secondary);margin-top:4px;line-height:1.45}.v6-best{font-size:10px;color:var(--accent2);margin-left:7px;font-weight:700;vertical-align:1px}.v6-chevron{font-size:20px;color:var(--text-muted)}
+.progress{gap:5px}.dot{height:3px}.dot.active{background:var(--text-primary)}.q-title{font-size:22px;font-weight:680;letter-spacing:-.025em}.option-btn{min-height:54px;border:0;background:var(--surface-2);border-radius:16px;font-size:14px}.primary-btn{border-radius:16px}.ghost-btn{font-family:inherit}
+@media(min-width:640px){body{background:var(--bg);padding:36px 20px}#app{border-color:var(--border);border-radius:28px;box-shadow:0 24px 80px rgba(0,0,0,.3)}}
+@media(prefers-reduced-motion:reduce){.screen{animation:none}button{transition:none}}
+</style>
+
+<meta name="theme-color" content="#08090b">
+<meta name="color-scheme" content="dark">
+
+<style id="barlog-2026">
+:root,:root[data-theme="dark"]{color-scheme:dark;--bg:#08090b;--surface:#08090b;--surface-2:#191b20;--border:#292c33;--text-primary:#f7f8fa;--text-secondary:#a6aab3;--text-muted:#818691;--accent:#f7f8fa;--accent-bg:#24272e;--accent2:#89adff;--accent2-bg:rgba(137,173,255,.14)}
+@media(prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#08090b;--surface:#08090b;--surface-2:#191b20;--border:#292c33;--text-primary:#f7f8fa;--text-secondary:#a6aab3;--text-muted:#818691;--accent:#f7f8fa;--accent-bg:#24272e;--accent2:#89adff;--accent2-bg:rgba(137,173,255,.14)}}
+html{background:#08090b;overflow-x:hidden}body{background:#08090b;font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue","Hiragino Sans",sans-serif;overflow-x:hidden;min-width:0}#app{width:100%;max-width:480px;min-height:100dvh;padding:max(16px,env(safe-area-inset-top)) 20px calc(108px + env(safe-area-inset-bottom));overflow-x:clip}button,input{font-family:inherit}button{min-height:44px;touch-action:manipulation}button:focus-visible,input:focus-visible{outline:2px solid var(--accent2);outline-offset:2px}.screen{gap:22px;min-width:0}.screen>*{min-width:0}h2{font-size:28px;font-weight:720;letter-spacing:-.035em!important;text-align:left!important;line-height:1.25}.topbar{min-height:52px}.logo{font-size:16px;letter-spacing:-.035em;font-weight:780;min-height:44px}.back-btn{width:44px;height:44px;font-size:0}.back-btn:before{content:"";width:9px;height:9px;border-left:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);margin-left:4px}.card{background:var(--surface-2);border:0;border-radius:20px;padding:18px}.nav-list{gap:8px}.nav-item,.v6-secondary{background:var(--surface-2);border:0;border-radius:18px;min-height:70px}.nav-title{font-size:16px}.v6-hero{padding:8px 0 0}.v6-kicker,.v6-section,.section-label,.info-label{color:var(--text-muted);letter-spacing:.01em;text-transform:none;font-weight:600;font-size:12px}.v6-title{font-size:37px;max-width:none}.v6-copy{font-size:14px;max-width:none}.v6-primary{min-height:104px;background:#e9edff;color:#11141e;border-radius:22px}.v6-primary strong{font-size:21px}.v6-primary small{font-size:12px}.v6-stats{gap:10px}.v6-stat{border-radius:18px}.v6-stat-num{font-variant-numeric:tabular-nums}.v6-login{min-height:44px}.today-card{width:100%;display:flex;align-items:center;text-align:left;gap:16px;border:0;border-radius:22px;background:#202633;padding:18px;min-height:106px}.today-icon{width:56px;height:56px;border-radius:17px;background:#303b50;display:grid;place-items:center;color:#b9ceff;flex:none}.today-icon svg{width:31px;height:31px}.today-text{flex:1;min-width:0}.today-eyebrow{display:block;color:#b9ceff;font-size:12px;font-weight:650;margin-bottom:7px}.today-name{display:block;font-size:19px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.today-line{display:block;color:#b4bccc;font-size:12px;margin-top:4px;line-height:1.4}.ui-icon{width:21px;height:21px;display:block;flex:none}.nav-item>.ui-icon{color:var(--accent2)}.nav-item>div:nth-child(2){min-width:0}.row-arrow,.v6-chevron{font-size:0!important;width:8px;height:8px;border-right:2px solid var(--text-muted);border-top:2px solid var(--text-muted);transform:rotate(45deg);flex:none;margin-right:5px}.v6-primary .v6-go{font-size:0}.v6-primary .v6-go:before{content:"";display:block;width:24px;height:24px;border-right:2px solid currentColor;border-top:2px solid currentColor;transform:rotate(45deg) scale(.55)}.tabbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);z-index:50;width:min(100%,480px);padding:8px 12px calc(8px + env(safe-area-inset-bottom));display:grid;grid-template-columns:repeat(4,1fr);background:rgba(16,18,22,.96);border-top:1px solid var(--border);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px)}.tabbar button{border:0;background:none;color:var(--text-muted);border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:52px;font-size:10px;font-weight:600}.tabbar button.active{color:var(--text-primary)}.tabbar svg{width:22px;height:22px}.section-heading{font-size:22px;font-weight:700;letter-spacing:-.03em}.option-btn{min-height:58px}.q-title{text-align:left;font-size:26px}.q-count{text-align:left}.progress .dot.active{background:var(--accent2)}.v6-drink{min-height:70px;grid-template-columns:24px minmax(0,1fr) 12px}.v6-drink-name,.log-name{overflow-wrap:anywhere}.v6-best{color:var(--accent2)}.v6-results-head h2{font-size:24px}.result-tagline{text-align:left}.diagnosis-text{font-size:23px}.share-btn{min-height:44px;text-decoration:none}.info-box{background:var(--surface-2);border-radius:18px;font-size:14px;padding:18px;line-height:1.65;border-left:0!important}.trivia-quote{border-left:0!important;padding:4px 2px;color:var(--text-secondary);font-size:14px}.trait-dot{background:var(--accent2)!important}.log-row{min-height:60px}.search-input{min-height:48px;background:var(--surface-2);border:0;font-size:16px}.tab-btn,.chip,.pref-btn{min-height:44px}.tab-btn.active,.chip.active{background:var(--accent-bg);color:var(--text-primary);border-color:var(--accent-bg)}.chip{padding:10px 14px}.filter-reset{min-height:44px}.primary-btn{min-height:54px}.ghost-btn{min-height:44px}.more-toggle{min-height:44px;color:var(--accent2)}.badge-chip.rank-gold.earned,.rank-summary.rank-ゴールド{box-shadow:none}.favorite-toggle{width:100%;display:flex;align-items:center;justify-content:center;gap:9px;background:var(--surface-2);border:0;border-radius:15px;min-height:52px;font-size:14px;font-weight:600}.favorite-toggle svg{width:19px;height:19px;color:var(--accent2)}.my-email{overflow-wrap:anywhere;color:var(--text-secondary);font-size:14px}.account-card{display:flex;flex-direction:column;gap:12px}.sub-note{color:var(--text-muted);font-size:12px;line-height:1.6}.empty{line-height:1.7}.swatch{border-color:rgba(255,255,255,.2)}.modal-card{background:#202228;border:0}.modal-cancel,.modal-confirm{min-height:48px}
+@media(min-width:640px){body{background:#08090b}#app{border:1px solid #292c33;box-shadow:none;max-height:none;overflow-y:visible}}
+@media(max-width:360px){#app{padding-left:16px;padding-right:16px}.v6-title{font-size:32px}.today-icon{width:48px;height:48px}.tabbar{padding-left:4px;padding-right:4px}}
+</style>
+<style id="barlog-illustrated-glass">
+.today-card{min-height:124px;gap:14px;padding:14px 16px}.today-icon{width:82px;height:92px;border-radius:19px;background:linear-gradient(155deg,#303c50,#242d3e);box-shadow:inset 0 1px 0 rgba(255,255,255,.1);overflow:hidden}.today-icon .drink-illustration{width:74px;height:84px;display:block;filter:drop-shadow(0 8px 5px rgba(0,0,0,.22))}.today-text{align-self:center}.today-name{font-size:18px}.today-line{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;white-space:normal;overflow:hidden}.detail-glass{min-height:174px;border-radius:22px;background:linear-gradient(155deg,#232c3a,#1a202b);display:grid;place-items:center}.detail-glass .drink-illustration{width:144px;height:154px;filter:drop-shadow(0 12px 8px rgba(0,0,0,.26))}@media(max-width:360px){.today-icon{width:72px;height:82px}.today-icon .drink-illustration{width:68px;height:76px}}
+</style>
+<style id="barlog-visual-card">
+.drink-visual{overflow:hidden;border-radius:22px;background:#1a202b}.drink-visual .detail-glass{min-height:198px;border-radius:0;background:radial-gradient(circle at 50% 58%,#344256 0%,#222d3d 46%,#1a202b 85%)}.drink-visual .drink-illustration{height:174px;width:166px}.drink-visual-caption{padding:0 20px 20px}.drink-visual-caption .info-label{color:#bbc9dd;margin-bottom:5px}.drink-visual-caption p{font-size:14px;line-height:1.6;color:#e2e8f1}.today-icon{background:radial-gradient(circle at 50% 55%,#40516a,#252f40 75%)}
+</style>
+<style id="barlog-results-visuals">
+.v6-result-list{border:0;gap:10px}.v6-drink{display:grid;grid-template-columns:80px minmax(0,1fr) 9px;gap:14px;min-height:110px;padding:12px 14px;background:var(--surface-2);border:0;border-radius:18px;align-items:center}.v6-drink.best{background:#202b3c}.v6-result-art{display:grid;place-items:center;width:80px;height:86px;border-radius:14px;background:radial-gradient(circle at center,#354358,#252e3c);overflow:hidden}.v6-result-art .drink-illustration{width:76px;height:80px;filter:drop-shadow(0 5px 4px rgba(0,0,0,.28))}.v6-result-copy{display:flex;flex-direction:column;gap:4px;min-width:0}.v6-rank{display:block;font-size:11px;color:var(--text-muted)}.v6-drink.best .v6-rank{color:#b9ceff}.v6-drink-name{display:block;font-size:16px;line-height:1.3}.v6-drink-line{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:12px;line-height:1.5;color:var(--text-secondary);margin:0}.v6-drink .v6-chevron{justify-self:end}.v6-drink:active{background:#303744}@media(max-width:360px){.v6-drink{grid-template-columns:68px minmax(0,1fr) 8px;gap:10px;padding:10px}.v6-result-art{width:68px;height:76px}.v6-result-art .drink-illustration{width:66px;height:72px}}
+</style>
+<style id="barlog-unified-lists">
+.drink-list{display:flex;flex-direction:column;gap:9px;min-width:0}.drink-list-row{display:grid;grid-template-columns:68px minmax(0,1fr) 9px;gap:12px;align-items:center;width:100%;min-height:90px;padding:9px 13px;background:var(--surface-2);border:0;border-radius:17px;text-align:left}.drink-list-row:active{background:#303744}.drink-list-art{display:grid;place-items:center;width:68px;height:72px;border-radius:12px;background:radial-gradient(circle at center,#354358,#252e3c);overflow:hidden}.drink-list-art .drink-illustration{width:64px;height:68px;filter:drop-shadow(0 5px 3px rgba(0,0,0,.25))}.drink-list-content{min-width:0;display:flex;flex-direction:column;gap:3px}.drink-list-name{font-size:15px;font-weight:680;line-height:1.3;overflow-wrap:anywhere}.drink-list-look{font-size:12px;line-height:1.45;color:var(--text-secondary);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.drink-list-note{font-size:11px;color:var(--accent2);line-height:1.35}.drink-list-row .row-arrow{justify-self:end}.filter-group-label{font-size:12px}.filter-group{margin-top:2px}@media(max-width:360px){.drink-list-row{grid-template-columns:60px minmax(0,1fr) 8px;gap:9px;padding:8px}.drink-list-art{width:60px;height:66px}.drink-list-art .drink-illustration{width:58px;height:62px}}
+</style>
+<style id="barlog-personalization">
+.taste-card{display:flex;flex-direction:column;gap:10px}.taste-title{font-size:20px;font-weight:700;letter-spacing:-.025em;line-height:1.4}.result-context{font-size:13px;line-height:1.55;color:var(--text-secondary);margin-top:-8px}.result-why{font-size:11px;color:#b9ceff;line-height:1.4;margin-top:3px;display:block}.today-line{color:#c4d2eb}
+</style>
+<style id="barlog-cocktail-map">
+.map-heading{display:flex;flex-direction:column;gap:7px}.map-heading p{color:var(--text-secondary);font-size:14px}.map-progress{padding:15px 17px;background:var(--surface-2);border-radius:17px;font-size:13px;color:var(--text-secondary)}.map-progress strong{font-size:25px;color:var(--text-primary);font-variant-numeric:tabular-nums}.map-group{position:relative;padding:2px 0 0 22px;border-left:1px solid #3b4658;margin-left:13px}.map-group-head{display:flex;align-items:center;margin-bottom:14px;position:relative}.map-hub{position:absolute;left:-30px;top:11px;width:15px;height:15px;border-radius:50%;background:#788dad;border:3px solid #1a2432;box-shadow:0 0 0 1px #52657f}.map-group-head h3{font-size:17px;font-weight:700}.map-group-head span:not(.map-hub){font-size:12px;color:var(--text-muted)}.map-nodes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;padding-bottom:23px}.map-node{position:relative;min-height:74px;padding:12px;background:#151920;border:1px solid #262d38;border-radius:15px;display:flex;flex-direction:column;align-items:flex-start;gap:5px;text-align:left;color:#a2aab7;min-width:0}.map-node:before{content:"";position:absolute;left:-23px;top:25px;width:21px;border-top:1px solid #3b4658}.map-node.lit{color:#f4f7fb;background:#202c3a;border-color:#435b77}.map-node.just-lit{box-shadow:0 0 0 1px #97baff,0 0 20px rgba(137,173,255,.26)}.map-star{width:8px;height:8px;flex:none;border-radius:50%;background:#555f6f}.map-node.lit .map-star{background:#add0ff;box-shadow:0 0 9px #9dc6ff}.map-node-name{font-size:13px;line-height:1.3;font-weight:650;overflow-wrap:anywhere}.map-node small{font-size:10px;color:var(--text-muted)}.map-node.lit small{color:#acc5e7}.map-reveal{background:linear-gradient(145deg,#263751,#1a2432);border-radius:20px;padding:22px;display:flex;flex-direction:column;gap:10px}.map-reveal-mark{width:38px;height:38px;border-radius:12px;background:#3d5272;color:#c8dcff;display:grid;place-items:center}.map-reveal h3{font-size:19px;font-weight:700;line-height:1.35}.map-reveal p{font-size:13px;color:#c2cedd}.map-next-btn{background:#e9edff;color:#11141e;border:0;border-radius:13px;text-align:left;padding:12px 14px;font-weight:650;display:flex;justify-content:space-between;align-items:center}.map-detail-hint{font-size:13px;line-height:1.6;color:#c4d2e8;background:#202b3a;border-radius:15px;padding:14px}.v6-secondary>.ui-icon{color:var(--accent2)}@media(max-width:350px){.map-nodes{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function () {
+  "use strict";
+
+  /* ============================================================
+     1. DATA — お酒マスターと質問セット。
+     お酒を追加する時はDRINKSの配列に1件足すだけでよい書式にしてある。
+     共通: { id, name, genre, tags, line, recipe, trivia, color, colorTo, look, glass, carbonated }
+       id         : 一意なキー(英数字)
+       genre      : cocktail / beer
+       tags       : mood/sweetness/intensity(共通)+ジャンル固有タグ(ビールはbitterness)。各-2〜+2
+       line       : 結果一覧に出す短いキャッチコピー
+       recipe     : 構成・スペック(材料/分量、またはアルコール度数など)
+       trivia     : 詳細画面で見せる豆知識(由来・トリビア)
+       color/colorTo/look : 見た目の色見本と説明
+       glass      : グラスの形。rock / highball / coupe / mug
+       carbonated : 炭酸を使うか(true/false)
+     カクテル固有: base(ジン/ウイスキー等。同ベース優先の並び替えに使用)
+     ビール固有  : style(ラガー/IPA等。同スタイル優先の並び替えと表示ラベルに使用)
+     ============================================================ */
+  var DRINKS = [
+    { id: "gin_tonic", name: "ジントニック", base: "gin", genre: "cocktail",
+      tags: { mood: 1, sweetness: -1, intensity: -1 },
+      line: "王道の軽やかさ。まず外さない一杯",
+      recipe: "ジン45ml、トニックウォーター90ml、ライム",
+      trivia: "起源はイギリス統治下のインド。マラリア予防薬キニーネの苦味をジンと炭酸で飲みやすくしたのが始まり",
+      triviaLong: { origin: "起源はイギリス統治下のインドで、マラリア予防薬キニーネの苦味をジンと炭酸で飲みやすくしたのが始まりとされる。", variation: "レモンよりライムを使うのが伝統的なスタイルで、トニックウォーターの銘柄によっても風味が大きく変わる。", tip: "氷を先に入れてから炭酸をゆっくり注ぐと、泡が飛びにくく最後まで爽快な喉ごしを保てる。" },
+      color: "#eef2ee", look: "無色透明。氷とライムがよく映える",
+      glass: "highball", carbonated: true },
+    { id: "gin_rickey", name: "ジンリッキー", base: "gin", genre: "cocktail",
+      tags: { mood: -1, sweetness: -2, intensity: -1 },
+      line: "静かに酔いたい夜向き。ドライで軽やか",
+      recipe: "ジン45ml、ライムジュース15ml、ソーダ",
+      trivia: "19世紀末、ワシントンD.C.のロビイストJoe Rickeyの名にちなむ。砂糖を使わない辛口が特徴",
+      triviaLong: { origin: "19世紀末、ワシントンD.C.のロビイストJoe Rickeyの名にちなんで生まれた、砂糖を使わない辛口カクテル。", variation: "ベースの酒を変えても成立する懐の深いレシピで「ウイスキーリッキー」などの派生も存在する。", tip: "氷をたっぷり入れてグラスの温度を保つのが、最後まで薄まらず美味しく飲むコツ。" },
+      color: "#eef2ee", look: "無色透明。見た目は水に近い軽さ",
+      glass: "highball", carbonated: true },
+    { id: "negroni", name: "ネグローニ", base: "gin", genre: "cocktail",
+      tags: { mood: -1, sweetness: -1, intensity: 1 },
+      line: "大人の苦味。落ち着いた雰囲気に合う",
+      recipe: "ジン20ml、スウィートベルモット20ml、カンパリ20ml",
+      trivia: "1919年、フィレンツェのネグローニ伯爵がカクテルの度数を上げてほしいと頼んだのが由来とされる",
+      triviaLong: { origin: "1919年、フィレンツェのネグローニ伯爵がカクテルの度数を上げてほしいと頼んだのが由来とされる。", variation: "ジンを増やして辛口にする作り方や、プロセッコを加えた「ネグローニ・スバリアート」というバリエーションもある。", tip: "大きめの氷を1つだけ入れると、溶けるスピードが遅く最後まで味が崩れにくい。" },
+      color: "#c1443a", look: "鮮やかな赤オレンジ。カンパリの色がそのまま出る",
+      glass: "rock", carbonated: false },
+    { id: "martini", name: "マティーニ", base: "gin", genre: "cocktail",
+      tags: { mood: -2, sweetness: -2, intensity: 2 },
+      line: "会話を止める一杯。多くを語らない強さ",
+      recipe: "ジン45ml、ドライベルモット15ml、オリーブ",
+      trivia: "「カクテルの王様」と呼ばれる。ジンとベルモットの比率は店ごとに流儀があり、注文時に会話のネタになる",
+      triviaLong: { origin: "「カクテルの王様」と呼ばれる古典で、ジンとベルモットの比率は店ごとに流儀があり、注文時の会話のネタになる。", variation: "ベルモットを極限まで減らした「ドライマティーニ」、ウォッカ版の「ウォッカティーニ」など、呼び名だけで何種類もある。", tip: "グラスを事前にしっかり冷やしておくと、混ぜる時間を短縮でき水っぽくなりにくい。" },
+      color: "#f0ecd9", look: "ほぼ透明の淡い黄色。逆三角のグラスが印象的",
+      glass: "coupe", carbonated: false },
+    { id: "whiskey_sour", name: "ウイスキーサワー", base: "whiskey", genre: "cocktail",
+      tags: { mood: 0, sweetness: 1, intensity: 1 },
+      line: "香ばしくコクがある。語りに向く一杯",
+      recipe: "ウイスキー45ml、レモンジュース20ml、シロップ10ml",
+      trivia: "サワー系カクテルの原型。19世紀の船乗りがビタミン補給のためにライムを加えたのが起源という説がある",
+      triviaLong: { origin: "サワー系カクテルの原型とされ、19世紀の船乗りがビタミン補給のためにライムを加えたのが起源という説がある。", variation: "卵白を加えて泡立たせる作り方も定番で、見た目がよりクリーミーになる。", tip: "仕上げにアンゴスチュラビターズを数滴垂らすと、香りに奥行きが出る。" },
+      color: "#d99a4e", look: "琥珀色でとろみのある見た目",
+      glass: "rock", carbonated: false },
+    { id: "old_fashioned", name: "オールドファッションド", base: "whiskey", genre: "cocktail",
+      tags: { mood: -1, sweetness: 0, intensity: 2 },
+      line: "バーボンの芯を感じる、静かな一杯",
+      recipe: "ウイスキー45ml、角砂糖、ビターズ、オレンジピール",
+      trivia: "カクテルの原型とも言われる最古参の一つ。「昔ながらの作り方」という名前がそのまま由来",
+      triviaLong: { origin: "カクテルの原型とも言われる最古参の一つで、「昔ながらの作り方」という名前がそのまま由来になっている。", variation: "使うウイスキーをバーボンからライに変えるだけで、印象がかなりスパイシーな方向に変わる。", tip: "角砂糖はビターズを染み込ませてから潰すと、香りが全体に均一に広がる。" },
+      color: "#b5651d", look: "濃い琥珀色。大きな氷一つで見た目も渋い",
+      glass: "rock", carbonated: false },
+    { id: "highball", name: "ハイボール", base: "whiskey", genre: "cocktail",
+      tags: { mood: 1, sweetness: -1, intensity: -1 },
+      line: "食事にも合う、飲み飽きない軽さ",
+      recipe: "ウイスキー30ml、ソーダ90ml",
+      trivia: "名前の由来には諸説あり、ゴルフ用語やアメリカの鉄道信号から来たという説が有名",
+      triviaLong: { origin: "名前の由来には諸説あり、ゴルフ用語やアメリカの鉄道信号から来たという説が有名。", variation: "日本ではサントリーの「角ハイボール」ブームで国民的な飲み方として定着した。", tip: "ウイスキーとソーダの比率は1:3が目安。ステアは軽く1回だけにすると炭酸が抜けにくい。" },
+      color: "#e8d9b5", look: "薄い琥珀色で泡立つ、炭酸の弾ける見た目",
+      glass: "highball", carbonated: true },
+    { id: "mojito", name: "モヒート", base: "rum", genre: "cocktail",
+      tags: { mood: 2, sweetness: 1, intensity: -1 },
+      line: "ミントが香る、会話が弾む一杯",
+      recipe: "ラム45ml、ライム、ミント、砂糖、ソーダ",
+      trivia: "キューバ発祥で、文豪ヘミングウェイが愛飲したことで世界的に広まった",
+      triviaLong: { origin: "キューバ発祥で、文豪ヘミングウェイが愛飲したことで世界的に広まった。", variation: "炭酸を使わない素朴な原型「エル・ドラケ」が起源という説もある。", tip: "ミントは潰しすぎると苦味が出るため、軽く叩いて香りを立たせる程度に留めるのがコツ。" },
+      color: "#bfe3b4", look: "ミントの緑が目立つ、爽やかな見た目",
+      glass: "highball", carbonated: true },
+    { id: "daiquiri", name: "ダイキリ", base: "rum", genre: "cocktail",
+      tags: { mood: 0, sweetness: 0, intensity: 0 },
+      line: "シンプルでクセがない、万人向けの一杯",
+      recipe: "ラム45ml、ライムジュース15ml、シロップ10ml",
+      trivia: "名前はキューバの鉱山町ダイキリから。ラム・ライム・砂糖だけのシンプルな構成が原型",
+      triviaLong: { origin: "名前はキューバの鉱山町ダイキリから。ラム・ライム・砂糖だけのシンプルな構成が原型。", variation: "凍らせてシャーベット状にした「フローズン・ダイキリ」も定番のバリエーション。", tip: "ヘミングウェイが好んだのは砂糖抜きでグレープフルーツを加えた辛口タイプだったと言われる。" },
+      color: "#f2eccb", look: "淡い黄色。すっきりとした透明感",
+      glass: "coupe", carbonated: false },
+    { id: "dark_and_stormy", name: "ダークアンドストーミー", base: "rum", genre: "cocktail",
+      tags: { mood: 1, sweetness: 0, intensity: 1 },
+      line: "ジンジャーの刺激とコク、通好みの一杯",
+      recipe: "ラム45ml、ジンジャービア、ライム",
+      trivia: "バミューダ諸島の定番カクテルで、嵐の海の色に見立てたのが名前の由来",
+      triviaLong: { origin: "バミューダ諸島の定番カクテルで、嵐の海の色に見立てたのが名前の由来。", variation: "バミューダの企業ゴスリングズが商標を持つ、珍しく銘柄名がレシピ名になっているカクテル。", tip: "ジンジャービアの辛さが強いものを選ぶほど「嵐」らしい刺激が際立つ。" },
+      color: "#3b2314", colorTo: "#e8b34e", look: "上に濃いラム、下に淡いジンジャービアの二層",
+      glass: "highball", carbonated: true },
+    { id: "moscow_mule", name: "モスコミュール", base: "vodka", genre: "cocktail",
+      tags: { mood: 2, sweetness: 0, intensity: -1 },
+      line: "銅マグでも映える、話題づくりの一杯",
+      recipe: "ウォッカ45ml、ジンジャービア、ライム",
+      trivia: "銅製のマグで供するのが伝統。ウォッカが売れずに困っていた業者の販促がきっかけで広まったと言われる",
+      triviaLong: { origin: "銅製のマグで供するのが伝統。ウォッカが売れずに困っていた業者の販促がきっかけで広まったと言われる。", variation: "ジンジャービアはジンジャーエールより辛口なものを使うのが本来のスタイル。", tip: "銅のマグは見た目だけでなく、冷たさが伝わりやすく保冷効果も高い実用的な理由がある。" },
+      color: "#f5e7a1", look: "淡い黄色。銅のマグで出ることが多く見た目も特徴的",
+      glass: "mug", carbonated: true },
+    { id: "cosmopolitan", name: "コスモポリタン", base: "vodka", genre: "cocktail",
+      tags: { mood: 1, sweetness: 1, intensity: 0 },
+      line: "香り高く華やか、印象に残る一杯",
+      recipe: "ウォッカ30ml、コアントロー15ml、クランベリージュース30ml、ライム",
+      trivia: "海外ドラマ「セックス・アンド・ザ・シティ」で主人公が愛飲し、90年代に世界的なブームを起こした",
+      triviaLong: { origin: "海外ドラマ「セックス・アンド・ザ・シティ」で主人公が愛飲し、90年代に世界的なブームを起こした。", variation: "本来はウォッカ・シトロン(レモン風味のウォッカ)を使うのが定番だが、プレーンなウォッカで作る店も多い。", tip: "ライムを絞ってから軽く炙ると、香りが一段と華やかになる。" },
+      color: "#e0587a", look: "鮮やかなピンク。写真映えする華やかな見た目",
+      glass: "coupe", carbonated: false },
+    { id: "espresso_martini", name: "エスプレッソマティーニ", base: "vodka", genre: "cocktail",
+      tags: { mood: 1, sweetness: 1, intensity: 1 },
+      line: "コーヒーの余韻。夜を長くする一杯",
+      recipe: "ウォッカ40ml、コーヒーリキュール20ml、エスプレッソ30ml",
+      trivia: "1980年代ロンドンのバーテンダーが、モデルの「眠気覚ましになる一杯を」という注文から考案した",
+      triviaLong: { origin: "1980年代ロンドンのバーテンダー、ディック・ブラッドセルが、モデルの「眠気覚ましになる一杯を」という注文から考案した。", variation: "コーヒーリキュールの銘柄によって甘さと苦味のバランスが大きく変わる。", tip: "強く振ることで、表面にきめ細かいコーヒー色の泡の層ができるのが完成度の目安。" },
+      color: "#c9a27a", colorTo: "#3c2415", look: "上にクリーマの層、下は濃い茶色の二層",
+      glass: "coupe", carbonated: false },
+    { id: "margarita", name: "マルガリータ", base: "tequila", genre: "cocktail",
+      tags: { mood: 2, sweetness: 0, intensity: 1 },
+      line: "塩の縁が効いた、テンションが上がる一杯",
+      recipe: "テキーラ40ml、コアントロー15ml、ライムジュース15ml",
+      trivia: "グラスの縁に塩をつける「スノースタイル」が特徴。名前の由来には諸説あり、亡くなった恋人説が有名",
+      triviaLong: { origin: "グラスの縁に塩をつける「スノースタイル」が特徴。名前の由来には諸説あり、亡くなった恋人説が有名。", variation: "フローズンスタイルで氷と一緒にブレンドする作り方もアメリカでは主流。", tip: "塩は縁の半分だけにつけると、甘さと塩気を飲むたびに選べて楽しい。" },
+      color: "#eaf2d7", look: "淡い黄緑。グラス縁の塩が白く際立つ",
+      glass: "coupe", carbonated: false },
+    { id: "tequila_sunrise", name: "テキーラサンライズ", base: "tequila", genre: "cocktail",
+      tags: { mood: 2, sweetness: 1, intensity: 0 },
+      line: "グラデーションが映える、乾杯向きの一杯",
+      recipe: "テキーラ45ml、オレンジジュース、グレナデンシロップ",
+      trivia: "グレナデンシロップが沈んで朝焼けのようなグラデーションを作る。ローリングストーンズが愛飲したことでも有名",
+      triviaLong: { origin: "グレナデンシロップが沈んで朝焼けのようなグラデーションを作る。ローリングストーンズが愛飲したことでも有名。", variation: "1970年代のツアーで振る舞われたことで一躍有名になった逸話が残る。", tip: "ストローで軽く1回だけ混ぜてグラデーションを崩しながら飲むと、味の変化を楽しめる。" },
+      color: "#f4a949", colorTo: "#c1272d", look: "上はオレンジ、下は赤いグラデーション",
+      glass: "highball", carbonated: false },
+    { id: "paloma", name: "パロマ", base: "tequila", genre: "cocktail",
+      tags: { mood: 1, sweetness: -1, intensity: -1 },
+      line: "グレープフルーツで軽快、メキシコの定番",
+      recipe: "テキーラ45ml、グレープフルーツソーダ、ライム",
+      trivia: "実はマルガリータよりもメキシコ国内での人気が高いとされる、現地の定番カクテル",
+      triviaLong: { origin: "実はマルガリータよりもメキシコ国内での人気が高いとされる、現地の定番カクテル。", variation: "メキシコでは瓶入りのグレープフルーツソーダを使うのが定番。", tip: "グラスの縁に塩をつけると、グレープフルーツの酸味がより引き立つ。" },
+      color: "#f4b6b0", look: "淡いピンク。グレープフルーツの色味が出る",
+      glass: "highball", carbonated: true },
+    { id: "manhattan", name: "マンハッタン", base: "whiskey", genre: "cocktail",
+      tags: { mood: -2, sweetness: 0, intensity: 2 },
+      line: "静かな余韻。多くを語らずとも伝わる一杯",
+      recipe: "ウイスキー45ml、スウィートベルモット15ml、ビターズ",
+      trivia: "1870年代、ニューヨークのマンハッタンクラブで生まれたとされる、カクテルの古典中の古典",
+      triviaLong: { origin: "1870年代、ニューヨークのマンハッタンクラブで生まれたとされる、カクテルの古典中の古典。", variation: "ドライベルモットを使うと「ドライマンハッタン」、両方使うと「パーフェクトマンハッタン」と呼び名が変わる。", tip: "チェリーを沈めるのが伝統的な仕上げで、最後に食べるのも楽しみの一つ。" },
+      color: "#7a2e22", look: "濃い赤茶色。チェリーが沈む重厚な見た目",
+      glass: "coupe", carbonated: false },
+    { id: "gimlet", name: "ギムレット", base: "gin", genre: "cocktail",
+      tags: { mood: -1, sweetness: -1, intensity: 0 },
+      line: "ライムの酸が効いた、すっと入る一杯",
+      recipe: "ジン45ml、ライムジュース15ml、シロップ10ml",
+      trivia: "イギリス海軍の軍医が壊血病予防にライムジュースを混ぜたのが起源という説がある",
+      triviaLong: { origin: "イギリス海軍の軍医が壊血病予防にライムジュースを混ぜたのが起源という説がある。", variation: "ジンの代わりにウォッカを使う店も多く、味の印象がかなり変わる。", tip: "ライムジュースは市販のコーディアル(甘味のあるライム果汁)を使うのが本来のレシピ。" },
+      color: "#d7e8b0", look: "淡い黄緑。ライムのすっきりした印象",
+      glass: "coupe", carbonated: false },
+    { id: "aviation", name: "アビエーション", base: "gin", genre: "cocktail",
+      tags: { mood: -1, sweetness: 0, intensity: 1 },
+      line: "すみれ色の香り、上品な一杯",
+      recipe: "ジン45ml、マラスキーノリキュール15ml、レモンジュース15ml、クレームドバイオレット少々",
+      trivia: "1916年の文献に登場する古典カクテル。名前は飛行機。わずかに紫がかった色がその由来とされる",
+      triviaLong: { origin: "1916年の文献に登場する古典カクテル。名前は飛行機。わずかに紫がかった色がその由来とされる。", variation: "クレームドバイオレットを省略した作り方も多く、その場合は単なる「ジン・サワー」に近い味わいになる。", tip: "紫の色味を楽しみたいなら、バイオレットリキュールを惜しまず入れるのがポイント。" },
+      color: "#e8d9ea", look: "淡い紫がかった、透明感のある色",
+      glass: "coupe", carbonated: false },
+    { id: "bees_knees", name: "ビーズニーズ", base: "gin", genre: "cocktail",
+      tags: { mood: 1, sweetness: 1, intensity: -1 },
+      line: "はちみつの甘さが優しい、飲みやすい一杯",
+      recipe: "ジン45ml、レモンジュース20ml、はちみつシロップ15ml",
+      trivia: "禁酒法時代、質の悪いジンの風味をごまかすためにはちみつを使ったのが始まりとされる",
+      triviaLong: { origin: "禁酒法時代、質の悪いジンの風味をごまかすためにはちみつを使ったのが始まりとされる。", variation: "レモンの代わりにライムを使う作り方もあり、酸味の印象が変わる。", tip: "はちみつは同量のお湯で割った「はちみつシロップ」にしておくと溶けやすい。" },
+      color: "#f2e2a8", look: "淡い黄金色で、とろみのある見た目",
+      glass: "coupe", carbonated: false },
+    { id: "boulevardier", name: "ブールバルディエ", base: "whiskey", genre: "cocktail",
+      tags: { mood: -1, sweetness: -1, intensity: 2 },
+      line: "ネグローニのウイスキー版。芯のある一杯",
+      recipe: "バーボン30ml、スウィートベルモット30ml、カンパリ30ml",
+      trivia: "1920年代のパリで発行されていた雑誌の名前から。ジンをバーボンに置き換えたネグローニ",
+      triviaLong: { origin: "1920年代、パリで発行されていた雑誌の名前から。ジンをバーボンに置き換えたネグローニ。", variation: "考案者は雑誌編集者のアースキン・ゴウィンとされる。", tip: "ネグローニより少しウイスキーの厚みが前に出るので、ロックでじっくり味わうのがおすすめ。" },
+      color: "#a8402f", look: "深みのある赤茶色",
+      glass: "rock", carbonated: false },
+    { id: "sazerac", name: "サゼラック", base: "whiskey", genre: "cocktail",
+      tags: { mood: -2, sweetness: 0, intensity: 2 },
+      line: "アブサンの香りをまとう、通好みの一杯",
+      recipe: "ライウイスキー45ml、アブサンでグラスをリンス、角砂糖、ビターズ",
+      trivia: "ニューオーリンズ発祥で、アメリカ最古のカクテルの一つとされる",
+      triviaLong: { origin: "ニューオーリンズ発祥で、アメリカ最古のカクテルの一つとされる。", variation: "本来はコニャックで作られていたが、19世紀後半のブドウ樹の病害でライウイスキーに置き換わった。", tip: "アブサンはグラスに香りづけするだけで、混ぜずに捨てるのが伝統的な作法。" },
+      color: "#8a4a1e", look: "琥珀色。グラスにアブサンの香りが移る",
+      glass: "rock", carbonated: false },
+    { id: "mai_tai", name: "マイタイ", base: "rum", genre: "cocktail",
+      tags: { mood: 2, sweetness: 1, intensity: 1 },
+      line: "南国感たっぷり、旅気分を運ぶ一杯",
+      recipe: "ラム45ml、オレンジキュラソー15ml、オルジェートシロップ15ml、ライムジュース15ml",
+      trivia: "1944年、カリフォルニアのティキバーで考案。名前はタヒチ語で「最高」を意味する",
+      triviaLong: { origin: "1944年、カリフォルニアのティキバーで考案。名前はタヒチ語で「最高」を意味する。", variation: "考案者ヴィクター・バージロンの逸話は有名だが、諸説あるとされる。", tip: "オルジェートシロップ(アーモンド風味)が本来の風味の決め手なので、省かず使いたい。" },
+      color: "#c96a2e", look: "琥珀がかったオレンジ色。ミントを飾ることが多い",
+      glass: "rock", carbonated: false },
+    { id: "pina_colada", name: "ピニャコラーダ", base: "rum", genre: "cocktail",
+      tags: { mood: 2, sweetness: 2, intensity: -2 },
+      line: "ココナッツが香る、デザート感覚の一杯",
+      recipe: "ラム45ml、パイナップルジュース90ml、ココナッツクリーム30ml",
+      trivia: "プエルトリコの国民的カクテル。名前は「濾したパイナップル」という意味",
+      triviaLong: { origin: "プエルトリコの国民的カクテル。名前は「濾したパイナップル」という意味。", variation: "1978年にプエルトリコの国民的カクテルに正式認定された。", tip: "缶詰のココナッツクリームを使うのが伝統的なレシピで、味の再現度が高い。" },
+      color: "#f5eccb", look: "白濁したクリーミーな見た目",
+      glass: "highball", carbonated: false },
+    { id: "bloody_mary", name: "ブラッディマリー", base: "vodka", genre: "cocktail",
+      tags: { mood: -1, sweetness: -1, intensity: 0 },
+      line: "食事にも合う、朝でも飲める一杯",
+      recipe: "ウォッカ45ml、トマトジュース90ml、レモン、各種スパイス",
+      trivia: "1920年代パリのバーで考案されたとされ、二日酔いの迎え酒としても定番",
+      triviaLong: { origin: "1920年代パリのバーで考案されたとされ、二日酔いの迎え酒としても定番。", variation: "コショウやタバスコ、ウスターソースなど、店によって独自のスパイス配合を競う文化がある。", tip: "セロリを添えるとマドラー代わりになり、香りのアクセントにもなる。" },
+      color: "#b23a2e", look: "濃い赤色。セロリなどを飾ることも多い",
+      glass: "highball", carbonated: false },
+    { id: "screwdriver", name: "スクリュードライバー", base: "vodka", genre: "cocktail",
+      tags: { mood: 1, sweetness: 1, intensity: -1 },
+      line: "オレンジ感覚で飲める、軽い一杯",
+      recipe: "ウォッカ45ml、オレンジジュース90ml",
+      trivia: "名前の由来は、中東の油田労働者がドライバー(工具)でオレンジジュースとウォッカを混ぜたという逸話から",
+      triviaLong: { origin: "名前の由来は、中東の油田労働者がドライバー(工具)でオレンジジュースとウォッカを混ぜたという逸話から。", variation: "ガリアーノを浮かべると「ハーベイ・ウォールバンガー」という別のカクテルになる。", tip: "シンプルな構成ゆえに、オレンジジュースの質がそのまま味に直結する。" },
+      color: "#f0a23a", look: "鮮やかなオレンジ色",
+      glass: "highball", carbonated: false },
+    { id: "french_75", name: "フレンチ75", base: "gin", genre: "cocktail",
+      tags: { mood: 1, sweetness: -1, intensity: 1 },
+      line: "シャンパンの泡が上がる、華やかな一杯",
+      recipe: "ジン30ml、レモンジュース15ml、シロップ10ml、シャンパンで満たす",
+      trivia: "第一次世界大戦のフランス軍の大砲「75mm野砲」の威力になぞらえて名付けられた",
+      triviaLong: { origin: "第一次世界大戦のフランス軍の大砲「75mm野砲」の威力になぞらえて名付けられた。", variation: "ジンの代わりにコニャックを使う作り方が実はオリジナルに近いという説もある。", tip: "シャンパンは仕上げに静かに注ぐと、泡が長持ちする。" },
+      color: "#f2e6b8", look: "淡い金色で細かい泡が立つ",
+      glass: "highball", carbonated: true },
+    { id: "aperol_spritz", name: "アペロールスプリッツ", base: "other", genre: "cocktail",
+      tags: { mood: 2, sweetness: 1, intensity: -2 },
+      line: "オレンジ色が目を引く、食前向きの軽い一杯",
+      recipe: "アペロール45ml、プロセッコ90ml、ソーダ少々",
+      trivia: "北イタリア・ヴェネト州発祥。今や世界中のテラス席の定番になった",
+      triviaLong: { origin: "北イタリア・ヴェネト州発祥。今や世界中のテラス席の定番になった。", variation: "カンパリを使う「カンパリスプリッツ」はより苦味の強い大人向けの一杯になる。", tip: "アペロール・プロセッコ・ソーダの比率は3:2:1が基本とされる。" },
+      color: "#f2934a", look: "鮮やかなオレンジ色。泡がグラスの中で弾ける",
+      glass: "highball", carbonated: true },
+    { id: "sidecar", name: "サイドカー", base: "other", genre: "cocktail",
+      tags: { mood: -1, sweetness: 0, intensity: 1 },
+      line: "ブランデーの香り高い、フレンチな一杯",
+      recipe: "ブランデー40ml、コアントロー20ml、レモンジュース20ml",
+      trivia: "第一次世界大戦中、サイドカー付きバイクで送迎されたことが名前の由来という説がある",
+      triviaLong: { origin: "第一次世界大戦中、サイドカー付きバイクで送迎されたことが名前の由来という説がある。", variation: "グラスの縁に砂糖をまぶす「シュガーリム」で仕上げるのが伝統的なスタイル。", tip: "考案者には諸説あり、パリのバーテンダー説が有力とされる。" },
+      color: "#d99a4a", look: "澄んだ琥珀色",
+      glass: "coupe", carbonated: false },
+    { id: "matador", name: "マタドール", base: "tequila", genre: "cocktail",
+      tags: { mood: 1, sweetness: 1, intensity: 0 },
+      line: "パイナップルが香る、南国風の一杯",
+      recipe: "テキーラ45ml、パイナップルジュース60ml、ライムジュース15ml",
+      trivia: "スペイン語で「闘牛士」の意味。マルガリータよりトロピカルな味わい",
+      triviaLong: { origin: "スペイン語で「闘牛士」の意味。マルガリータよりトロピカルな味わい。", variation: "マルガリータからコアントローを抜き、パイナップルジュースに置き換えたような構成。", tip: "塩の縁取りをせずに、フルーツの甘さそのものを楽しむのが一般的。" },
+      color: "#f2d24a", look: "鮮やかな黄色",
+      glass: "rock", carbonated: false },
+    { id: "singapore_sling", name: "シンガポールスリング", base: "gin", genre: "cocktail",
+      tags: { mood: 2, sweetness: 1, intensity: 0 },
+      line: "常夏の香り漂う、南国ムード満点の一杯",
+      recipe: "ジン30ml、チェリーブランデー15ml、コアントロー、DOMベネディクティン、パイナップルジュース、ライムジュース、グレナデンシロップ、ビターズ、ソーダ",
+      trivia: "1915年、シンガポールのラッフルズホテルのバーで考案。当時女性が人前でお酒を飲みづらかった時代に「フルーツジュースに見える一杯」として生まれたという説がある",
+      triviaLong: { origin: "1915年、シンガポールのラッフルズホテルのバーで考案。フルーツジュースに見える一杯として生まれたとされる。", variation: "本来のレシピは長年門外不出とされ、後年になって公式レシピが公開された経緯がある。", tip: "現在もラッフルズホテルのロングバーで供され続けており、観光客の必須オーダーになっている。" },
+      color: "#f2704a", colorTo: "#c1273f", look: "夕焼けのようなピンクオレンジのグラデーション",
+      glass: "highball", carbonated: true },
+
+    { id: "tom_collins", name: "トムコリンズ", base: "gin", genre: "cocktail",
+      tags: { mood: 1, sweetness: 0, intensity: -1 },
+      line: "炭酸が心地よい、食事にも合う定番の一杯",
+      recipe: "ジン45ml、レモンジュース20ml、シロップ10ml、ソーダで満たす",
+      trivia: "19世紀ロンドンで人気だった「コリンズ」という人物のいたずら電話が名前の由来という説がある、古典中の古典",
+      triviaLong: { origin: "19世紀ロンドンで人気だった「コリンズ」という人物のいたずら電話が名前の由来という説がある。", variation: "同じ構成でジンをウイスキーに変えると「ジョン・コリンズ」と呼び名が変わる。", tip: "「コリンズグラス」という専用の細長いグラスの名の由来にもなった一杯。" },
+      color: "#eef2ee", look: "透明感のある淡い黄色。細かい泡が立つ",
+      glass: "highball", carbonated: true },
+    { id: "cuba_libre", name: "キューバリバー", base: "rum", genre: "cocktail",
+      tags: { mood: 2, sweetness: 1, intensity: -1 },
+      line: "ラムコークとしても親しまれる、世界的な定番",
+      recipe: "ラム45ml、コーラ120ml、ライム",
+      trivia: "キューバ独立戦争のスローガン「自由なキューバ」が名前の由来とされる、世界中のバーにある定番オーダー",
+      triviaLong: { origin: "キューバ独立戦争のスローガン「自由なキューバ」が名前の由来とされる。", variation: "単に「ラムコーク」と呼ぶ場合はライムを省くこともあるが、正式にはライムを搾るのが本来のレシピ。", tip: "キューバでは自国産のラムとコーラで作ることに誇りを持つバーも多い。" },
+      color: "#3a2013", look: "コーラそのものの濃い茶色",
+      glass: "highball", carbonated: true },
+    { id: "white_russian", name: "ホワイトルシアン", base: "vodka", genre: "cocktail",
+      tags: { mood: -1, sweetness: 2, intensity: 1 },
+      line: "デザート感覚で飲める、まろやかな一杯",
+      recipe: "ウォッカ30ml、コーヒーリキュール30ml、生クリーム(または牛乳)適量",
+      trivia: "映画「ビッグ・リボウスキ」の主人公が愛飲したことで、公開後に再びブームになった一杯",
+      triviaLong: { origin: "映画「ビッグ・リボウスキ」の主人公が愛飲したことで、公開後に再びブームになった一杯。", variation: "乳製品を使わない「ブラックルシアン」が先に存在し、そこに生クリームを加えたのがホワイトルシアン。", tip: "生クリームを最後にそっと浮かせると、層になった見た目も楽しめる。" },
+      color: "#c9a37a", look: "クリーム色でコーヒー牛乳のような色合い",
+      glass: "rock", carbonated: false },
+    { id: "mimosa", name: "ミモザ", base: "other", genre: "cocktail",
+      tags: { mood: 2, sweetness: 0, intensity: -2 },
+      line: "軽やかな泡が心地よい、乾杯にぴったりの一杯",
+      recipe: "スパークリングワイン、オレンジジュースを1:1で",
+      trivia: "名前は同じ色の花「ミモザ」から。ブランチの定番として世界的に定着している",
+      triviaLong: { origin: "名前は同じ色の花「ミモザ」から。ブランチの定番として世界的に定着している。", variation: "オレンジジュースの比率を増やした「バックス・フィズ」という近縁のカクテルもある。", tip: "スパークリングワインは冷やしすぎず、少し温度を上げた方が香りが立つ。" },
+      color: "#f2b84a", look: "淡いオレンジ色で細かい泡が立つ",
+      glass: "coupe", carbonated: true },
+    { id: "long_island_iced_tea", name: "ロングアイランドアイスティー", base: "other", genre: "cocktail",
+      tags: { mood: 2, sweetness: 0, intensity: 2 },
+      line: "紅茶に見えて実は強い、通も唸る一杯",
+      recipe: "ジン・ウォッカ・ラム・テキーラ各15ml、コアントロー15ml、レモンジュース、コーラで満たす",
+      trivia: "見た目は紅茶そっくりだが、実は5種類のお酒が入った、バーの定番オーダーの一つ",
+      triviaLong: { origin: "見た目は紅茶そっくりだが、実は5種類のお酒が入った、バーの定番オーダーの一つ。", variation: "バーによってレシピの配合や使うお酒の種類が大きく異なる。", tip: "アルコール度数は通常のカクテルの数倍になることもあるため、ペース配分に注意。" },
+      color: "#3a2410", look: "紅茶のような濃い茶色",
+      glass: "highball", carbonated: true },
+
+    { id: "cassis_orange", name: "カシスオレンジ", base: "liqueur", genre: "cocktail",
+      tags: { mood: 2, sweetness: 2, intensity: -2 },
+      line: "甘くて飲みやすい、日本のバー屈指の定番",
+      recipe: "クレームドカシス45ml、オレンジジュースで満たす",
+      trivia: "カシスリキュールをベースにした、日本のバー・居酒屋で最も頼まれる一杯の一つ",
+      triviaLong: { origin: "カシスリキュールをベースにした、日本のバー・居酒屋で最も頼まれる一杯の一つ。", variation: "フランスのディジョン地方が本場のクレームドカシスは、白ワインと合わせる「キール」にも使われる。", tip: "オレンジジュースの代わりにグレープフルーツにすると、また違った一杯になる。" },
+      color: "#c23a5a", look: "鮮やかな赤紫色",
+      glass: "highball", carbonated: false },
+    { id: "cassis_soda", name: "カシスソーダ", base: "liqueur", genre: "cocktail",
+      tags: { mood: 1, sweetness: 0, intensity: -2 },
+      line: "すっきり飲める、食事にも合わせやすい一杯",
+      recipe: "クレームドカシス45ml、ソーダで満たす",
+      trivia: "カシスオレンジよりすっきりした甘さで、食中酒としても選ばれる定番",
+      triviaLong: { origin: "カシスオレンジよりすっきりした甘さで、食中酒としても選ばれる定番。", variation: "甘さを抑えたい時はソーダの量を増やすだけで簡単に調整できる。", tip: "ライムを軽く搾ると、香りがぐっと引き締まる。" },
+      color: "#c23a6a", look: "淡い赤紫色で細かい泡が立つ",
+      glass: "highball", carbonated: true },
+    { id: "cassis_oolong", name: "カシスウーロン", base: "liqueur", genre: "cocktail",
+      tags: { mood: 0, sweetness: -1, intensity: -1 },
+      line: "和のテイストが効いた、居酒屋でも人気の一杯",
+      recipe: "クレームドカシス45ml、烏龍茶で満たす",
+      trivia: "烏龍茶とカシスの組み合わせは日本発祥ともいわれ、居酒屋メニューの定番になっている",
+      triviaLong: { origin: "烏龍茶とカシスの組み合わせは日本発祥ともいわれ、居酒屋メニューの定番になっている。", variation: "焼酎ベースで作られることも多く、ウーロンハイの派生として扱われることもある。", tip: "烏龍茶の銘柄によって渋みの出方が変わるので、好みで選び分けても面白い。" },
+      color: "#5a2e28", look: "烏龍茶の茶色にほんのり赤みが差す",
+      glass: "highball", carbonated: false },
+    { id: "kahlua_milk", name: "カルーアミルク", base: "liqueur", genre: "cocktail",
+      tags: { mood: -1, sweetness: 2, intensity: -1 },
+      line: "コーヒー牛乳のような、甘党に人気の一杯",
+      recipe: "カルーア(コーヒーリキュール)45ml、牛乳で満たす",
+      trivia: "デザート感覚で飲める甘口カクテルの代表格。お酒が苦手な人の入り口としても定番",
+      triviaLong: { origin: "デザート感覚で飲める甘口カクテルの代表格。お酒が苦手な人の入り口としても定番。", variation: "カルーアの代わりに他のコーヒーリキュールを使っても成立する懐の深いレシピ。", tip: "牛乳を生クリームに変えると、よりデザート感の強い仕上がりになる。" },
+      color: "#c9a37a", look: "コーヒー牛乳のような薄茶色",
+      glass: "rock", carbonated: false },
+    { id: "fuzzy_navel", name: "ファジーネーブル", base: "liqueur", genre: "cocktail",
+      tags: { mood: 2, sweetness: 2, intensity: -2 },
+      line: "桃の香りが優しい、飲みやすさ抜群の一杯",
+      recipe: "ピーチリキュール45ml、オレンジジュースで満たす",
+      trivia: "名前は「あいまいなおへそ」という意味の俗語から。甘くフルーティで日本でも根強い人気",
+      triviaLong: { origin: "名前は「あいまいなおへそ」という意味の俗語から。甘くフルーティで日本でも根強い人気。", variation: "「ファジー」はピーチの産毛を、「ネーブル」はオレンジの品種を指している。", tip: "ウォッカを少量加える派生レシピもあり、キレのある後味になる。" },
+      color: "#f2924a", look: "淡いオレンジ色",
+      glass: "highball", carbonated: false },
+    { id: "spumoni", name: "スプモーニ", base: "liqueur", genre: "cocktail",
+      tags: { mood: 0, sweetness: -1, intensity: -1 },
+      line: "ほろ苦さと爽快感が心地よい、通好みの一杯",
+      recipe: "カンパリ30ml、グレープフルーツジュース、ソーダで満たす",
+      trivia: "イタリア語で「泡立つ」という意味。ほろ苦さとグレープフルーツの爽快感が人気の理由",
+      triviaLong: { origin: "イタリア語で「泡立つ」という意味。ほろ苦さとグレープフルーツの爽快感が人気の理由。", variation: "カンパリ・グレープフルーツ・ソーダの比率の違いで、店ごとの個性が出やすい一杯。", tip: "イタリアでは食前酒として親しまれ、食欲を高める役割も持つ。" },
+      color: "#e8724a", look: "オレンジがかった赤色で細かい泡が立つ",
+      glass: "highball", carbonated: true },
+    { id: "salty_dog", name: "ソルティードッグ", base: "vodka", genre: "cocktail",
+      tags: { mood: 0, sweetness: -1, intensity: -1 },
+      line: "グラス縁の塩が味を引き締める、さっぱりした一杯",
+      recipe: "ウォッカ45ml、グレープフルーツジュースで満たす。グラスの縁に塩",
+      trivia: "「Salty Dog」は元々船員を指す俗語。グラス縁の塩がグレープフルーツの甘みを引き締める",
+      triviaLong: { origin: "「Salty Dog」は元々船員を指す俗語。グラス縁の塩が味を引き締める。", variation: "グレープフルーツジュースをオレンジジュースに変え、塩を省くと「スクリュードライバー」に近い味わいになる。", tip: "塩を舐めながら飲むか、混ぜて飲むかは好み次第。まずは舐めながら試すのがおすすめ。" },
+      color: "#f2c76a", look: "淡い黄色。グラス縁の塩が白く際立つ",
+      glass: "highball", carbonated: false }
+  ];
+
+  var COCKTAIL_QUESTIONS = [
+    { key: "mood", title: "今夜の気分は?", options: [
+      { label: "静かに落ち着きたい", value: -2 },
+      { label: "会話を楽しみたい", value: 0 },
+      { label: "気分を上げたい", value: 2 }
+    ]},
+    { key: "sweetness", title: "味の好みは?", options: [
+      { label: "甘め", value: 2 },
+      { label: "ちょうどいい感じ", value: 0 },
+      { label: "辛口・スッキリ", value: -2 }
+    ]},
+    { key: "intensity", title: "強さは?", options: [
+      { label: "軽め", value: -2 },
+      { label: "普通", value: 0 },
+      { label: "強め", value: 2 }
+    ]},
+    { key: "base", title: "ベースの好みは?", options: [
+      { label: "ジン", value: "gin" },
+      { label: "ウイスキー", value: "whiskey" },
+      { label: "ラム", value: "rum" },
+      { label: "ウォッカ", value: "vodka" },
+      { label: "テキーラ", value: "tequila" },
+      { label: "リキュール", value: "liqueur" },
+      { label: "こだわらない", value: null }
+    ]}
+  ];
+
+  var GENRES = {
+    cocktail: { label: "カクテル", questions: COCKTAIL_QUESTIONS, categoryKey: "base" }
+  };
+
+  var BASE_LABEL = { gin: "ジン", whiskey: "ウイスキー", rum: "ラム", vodka: "ウォッカ", tequila: "テキーラ", liqueur: "リキュール", other: "その他" };
+  var PREF_LABEL = { 3: "好み", 2: "ふつう", 1: "好みじゃない" };
+
+  // カクテルは「○○ベース」を表示する。他ジャンルを足す時はここに分岐を追加
+  function subLabel(d) {
+    if (d.genre === "cocktail") return BASE_LABEL[d.base] + "ベース";
+    return d.style || "";
+  }
+  function infoLabel1(d) {
+    return d.genre === "cocktail" ? "構成" : "スペック";
+  }
+
+  /* ============================================================
+     2. STORE — 飲んだ記録の保存/読み込み(Supabase)
+     ============================================================ */
+  var SUPABASE_URL = "https://jmzxuepikefvhjzythmz.supabase.co";
+  var SUPABASE_ANON_KEY = "sb_publishable_4EzO8RrYEQN12nECT-UbSg_1-sQFEO-";
+  var supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  var currentUser = null; // ログイン中はSupabaseのuserオブジェクト、未ログインならnull
+  var isPasswordRecovery = false;
+  var authLinkError = "";
+
+  // メールのリンクは、公開中のこのHTMLと同じパスに戻す。
+  // サブディレクトリや /index.html で公開した場合も正しいページに戻る。
+  function authRedirectUrl() {
+    if (window.location.protocol !== "https:" && window.location.hostname !== "localhost") {
+      return null;
+    }
+    return window.location.origin + window.location.pathname;
+  }
+
+  var stock = [];
+  var loadError = false; // ストック取得に失敗した時にtrue。スタート画面で警告表示に使う
+
+  // ログイン中ユーザーの記録をサーバーから取得してstockに反映
+  async function loadStockFromServer() {
+    try {
+      var res = await supabaseClient.from("logs").select("*").order("created_at", { ascending: true });
+      if (res.error) throw res.error;
+      stock = res.data.map(function (row) {
+        return { drinkId: row.drink_id, timestamp: row.created_at, preference: row.preference };
+      });
+      loadError = false;
+    } catch (e) {
+      stock = [];
+      loadError = true;
+    }
+  }
+
+  // ストックの記録から自動判定する実績バッジ
+  var BADGES = [
+    { id: "first", label: "はじめの一杯", desc: "ストックに1杯記録する", rank: "bronze", check: function (s) { return s.length >= 1; } },
+    { id: "five", label: "5杯記録", desc: "ストックに5杯記録する", rank: "bronze", check: function (s) { return s.length >= 5; } },
+    { id: "ten", label: "10杯記録", desc: "ストックに10杯記録する", rank: "silver", check: function (s) { return s.length >= 10; } },
+    { id: "twenty", label: "20杯記録", desc: "ストックに20杯記録する", rank: "gold", check: function (s) { return s.length >= 20; } },
+    { id: "bases", label: "全ベース制覇", desc: "ジン/ウイスキー/ラム/ウォッカ/テキーラ/リキュールを1杯ずつ記録する", rank: "silver", check: function (s) {
+      var bases = {};
+      s.forEach(function (log) {
+        var d = DRINKS.find(function (x) { return x.id === log.drinkId; });
+        if (d) bases[d.base] = true;
+      });
+      return Object.keys(bases).length >= Object.keys(BASE_LABEL).length - 1; // "その他"を除く
+    }},
+    { id: "explorer", label: "探検家(15種)", desc: "15種類以上の異なるお酒を記録する", rank: "gold", check: function (s) {
+      var ids = {};
+      s.forEach(function (log) { ids[log.drinkId] = true; });
+      return Object.keys(ids).length >= 15;
+    }},
+    { id: "complete", label: "コンプリート", desc: "登録されている全" + DRINKS.length + "種類を記録する", rank: "gold", check: function (s) {
+      var ids = {};
+      s.forEach(function (log) { ids[log.drinkId] = true; });
+      return Object.keys(ids).length >= DRINKS.length;
+    }},
+    { id: "sweet_tooth", label: "甘党", desc: "甘口寄りのお酒を5杯記録する", rank: "bronze", check: function (s) {
+      return countMatchingDrinks(s, function (d) { return d.tags.sweetness > 0; }) >= 5;
+    }},
+    { id: "dry_lover", label: "辛口党", desc: "辛口寄りのお酒を5杯記録する", rank: "bronze", check: function (s) {
+      return countMatchingDrinks(s, function (d) { return d.tags.sweetness < 0; }) >= 5;
+    }},
+    { id: "favorite_found", label: "推し発見", desc: "「好み」評価を3杯記録する", rank: "bronze", check: function (s) {
+      return s.filter(function (log) { return log.preference === 3; }).length >= 3;
+    }},
+    { id: "repeater", label: "リピーター", desc: "同じお酒を3回記録する", rank: "silver", check: function (s) {
+      var counts = {};
+      s.forEach(function (log) { counts[log.drinkId] = (counts[log.drinkId] || 0) + 1; });
+      for (var key in counts) { if (counts[key] >= 3) return true; }
+      return false;
+    }},
+    { id: "glass_master", label: "グラス制覇", desc: "ロック/ハイボール/クープ/マグをすべて記録する", rank: "silver", check: function (s) {
+      var glasses = {};
+      s.forEach(function (log) {
+        var d = DRINKS.find(function (x) { return x.id === log.drinkId; });
+        if (d) glasses[d.glass] = true;
+      });
+      var allGlasses = {};
+      DRINKS.forEach(function (d) { allGlasses[d.glass] = true; });
+      return Object.keys(glasses).length >= Object.keys(allGlasses).length;
+    }},
+    { id: "carbonated_fan", label: "炭酸党", desc: "炭酸入りのお酒を5杯記録する", rank: "bronze", check: function (s) {
+      return countMatchingDrinks(s, function (d) { return d.carbonated; }) >= 5;
+    }},
+    { id: "night_owl", label: "深夜の一杯", desc: "深夜0時〜4時に記録する", rank: "silver", check: function (s) {
+      return s.some(function (log) {
+        var h = new Date(log.timestamp).getHours();
+        return h >= 0 && h < 4;
+      });
+    }}
+  ];
+  function countMatchingDrinks(s, predicate) {
+    var count = 0;
+    s.forEach(function (log) {
+      var d = DRINKS.find(function (x) { return x.id === log.drinkId; });
+      if (d && predicate(d)) count++;
+    });
+    return count;
+  }
+  function earnedBadgeIds(s) {
+    var earned = {};
+    BADGES.forEach(function (b) { if (b.check(s)) earned[b.id] = true; });
+    return earned;
+  }
+
+  // ログイン中かつストックに無いお酒かどうか(未挑戦バッジの表示判定に使用)
+  function isUntried(drinkId) {
+    if (!currentUser) return false;
+    return !stock.some(function (log) { return log.drinkId === drinkId; });
+  }
+
+  var RANK_LABEL = { bronze: "ブロンズ", silver: "シルバー", gold: "ゴールド" };
+  // 獲得数から総合ランクを判定(全14個中)
+  function overallRank(earnedCount) {
+    if (earnedCount >= 12) return "ゴールド";
+    if (earnedCount >= 9) return "シルバー";
+    if (earnedCount >= 5) return "ブロンズ";
+    return "見習い";
+  }
+
+  /* ============================================================
+     3. SCORING
+     ============================================================ */
+  var NUMERIC_TAG_KEYS = ["mood", "sweetness", "intensity"];
+
+  // Count each distinct drink once so repeats do not dominate a preference.
+  function tasteProfile() {
+    var entries = {};
+    if (currentUser && !loadError) stock.forEach(function (log) {
+      if (log.preference >= 1 && log.preference <= 3) entries[log.drinkId] = log.preference;
+    });
+    var rated = Object.keys(entries).map(function (id) {
+      return { drink: DRINKS.find(function (d) { return d.id === id; }), preference: entries[id] };
+    }).filter(function (item) { return !!item.drink; });
+    var liked = rated.filter(function (item) { return item.preference === 3; });
+    return { rated: rated, liked: liked, ready: rated.length >= 3 && liked.length >= 2 };
+  }
+
+  function drinkSimilarity(a, b) {
+    if (a.genre !== b.genre) return 0;
+    var distance = Math.abs((a.tags.sweetness || 0) - (b.tags.sweetness || 0)) +
+      Math.abs((a.tags.intensity || 0) - (b.tags.intensity || 0)) +
+      0.4 * Math.abs((a.tags.mood || 0) - (b.tags.mood || 0));
+    var category = GENRES[a.genre].categoryKey;
+    return Math.max(0, 1 - distance / 7) * 0.78 + (category && a[category] === b[category] ? 0.22 : 0);
+  }
+
+  function personalScore(d, profile) {
+    if (!profile.ready) return 0;
+    var likes = profile.liked.filter(function (item) { return item.drink.genre === d.genre; });
+    if (!likes.length) return 0;
+    var dislikes = profile.rated.filter(function (item) { return item.preference === 1 && item.drink.genre === d.genre; });
+    var positive = Math.max.apply(null, likes.map(function (item) { return drinkSimilarity(d, item.drink); }));
+    var negative = dislikes.length ? Math.max.apply(null, dislikes.map(function (item) { return drinkSimilarity(d, item.drink); })) : 0;
+    return positive - negative * 0.85;
+  }
+
+  function personalReason(d, profile) {
+    if (!profile.ready || personalScore(d, profile) < 0.35) return "";
+    var likes = profile.liked.filter(function (item) { return item.drink.genre === d.genre && item.drink.id !== d.id; });
+    likes.sort(function (a, b) { return drinkSimilarity(d, b.drink) - drinkSimilarity(d, a.drink); });
+    return likes.length && drinkSimilarity(d, likes[0].drink) >= 0.45
+      ? "好みだった「" + likes[0].drink.name + "」に近い一杯" : "";
+  }
+
+  function tasteSummary(profile) {
+    function axis(key, low, high) {
+      var avg = profile.liked.reduce(function (sum, item) { return sum + (item.drink.tags[key] || 0); }, 0) / profile.liked.length;
+      return avg <= -0.5 ? low : avg >= 0.5 ? high : "";
+    }
+    var traits = [axis("sweetness", "辛口寄り", "甘め寄り"), axis("intensity", "軽やか", "コクのある")].filter(Boolean);
+    var bases = {};
+    profile.liked.forEach(function (item) {
+      if (item.drink.genre === "cocktail" && BASE_LABEL[item.drink.base]) bases[item.drink.base] = (bases[item.drink.base] || 0) + 1;
+    });
+    var favoriteBase = Object.keys(bases).sort(function (a, b) { return bases[b] - bases[a]; })[0];
+    if (favoriteBase && bases[favoriteBase] >= 2) traits.unshift(BASE_LABEL[favoriteBase] + "ベースが好き");
+    return traits.length ? traits.join("・") : "幅広い味わいを好む";
+  }
+
+  function computeResults(genre, answers) {
+    var pool = DRINKS.filter(function (d) { return d.genre === genre; });
+    var catKey = GENRES[genre].categoryKey; // カクテル:base / ビール:style
+    var profile = tasteProfile();
+    var tried = {};
+    if (currentUser && !loadError) stock.forEach(function (log) { tried[log.drinkId] = true; });
+    var scored = pool.map(function (d) {
+      var score = 0;
+      NUMERIC_TAG_KEYS.forEach(function (key) {
+        if (typeof answers[key] === "number") score += answers[key] * (d.tags[key] || 0);
+      });
+      if (catKey && answers[catKey] && d[catKey] === answers[catKey]) score += 3; // カテゴリ一致ボーナス
+      score += personalScore(d, profile) * 1.25; // 今の回答を優先し、好みは近い候補の順位に反映
+      return { drink: d, score: score, rand: Math.random() };
+    });
+    scored.sort(function (a, b) {
+      if (b.score !== a.score) return b.score - a.score;
+      return a.rand - b.rand; // 同点はランダムでタイブレーク
+    });
+    var chosen = scored.slice(0, 3);
+    var kinds = ["近い一杯", "近い一杯", "近い一杯"];
+    var remaining = scored.filter(function (item) { return !chosen.some(function (x) { return x.drink.id === item.drink.id; }); });
+    var best = scored.length ? scored[0].score : 0;
+    var closeEnough = remaining.filter(function (item) { return item.score >= best - 4; });
+    var adjacent = closeEnough.find(function (item) {
+      return !chosen.some(function (x) { return x.drink[catKey] === item.drink[catKey]; });
+    }) || closeEnough[0] || remaining[0];
+    if (adjacent) {
+      chosen.push(adjacent); kinds.push(adjacent.score >= best - 4 ? "少し意外" : "おすすめ");
+      remaining = remaining.filter(function (item) { return item.drink.id !== adjacent.drink.id; });
+    }
+    var explorePool = remaining.filter(function (item) { return item.score >= best - 5 && !tried[item.drink.id]; });
+    // Respect an explicitly chosen base; exploration happens within it if possible.
+    if (catKey && answers[catKey]) {
+      var sameBase = explorePool.filter(function (item) { return item.drink[catKey] === answers[catKey]; });
+      if (sameBase.length) explorePool = sameBase;
+    }
+    var unexplored = explorePool.find(function (item) {
+      return !chosen.some(function (x) { return x.drink[catKey] === item.drink[catKey]; });
+    }) || explorePool[0] || remaining[0];
+    if (unexplored) {
+      chosen.push(unexplored); kinds.push(explorePool.indexOf(unexplored) !== -1 ? "未開拓" : "おすすめ");
+    }
+    var results = chosen.map(function (item) { return item.drink; });
+    results.kinds = kinds;
+    return results;
+  }
+
+  // 同じジャンルの中から、カテゴリ軸(base/style)が同じものを優先し、足りない分は味が近い順に補う
+  function relatedDrinks(d, limit) {
+    limit = limit || 3;
+    var sameGenre = DRINKS.filter(function (x) { return x.id !== d.id && x.genre === d.genre; });
+    var catKey = GENRES[d.genre] && GENRES[d.genre].categoryKey;
+
+    if (catKey) {
+      var sameCat = sameGenre.filter(function (x) { return x[catKey] === d[catKey]; });
+      sameCat.sort(function (a, b) { return tagDistance(a, d) - tagDistance(b, d); });
+      if (sameCat.length >= limit) return sameCat.slice(0, limit);
+      var others = sameGenre.filter(function (x) { return x[catKey] !== d[catKey]; });
+      others.sort(function (a, b) { return tagDistance(a, d) - tagDistance(b, d); });
+      return sameCat.concat(others).slice(0, limit);
+    }
+
+    sameGenre.sort(function (a, b) { return tagDistance(a, d) - tagDistance(b, d); });
+    return sameGenre.slice(0, limit);
+  }
+  function tagDistance(a, b) {
+    var sum = 0;
+    NUMERIC_TAG_KEYS.forEach(function (key) {
+      var diff = (a.tags[key] || 0) - (b.tags[key] || 0);
+      sum += diff * diff;
+    });
+    return sum;
+  }
+
+  /* ============================================================
+     4. APP STATE / ROUTER
+     「戻る」がどの画面から来たかに関わらず正しく機能するよう、
+     navigate()で画面遷移するたびに直前の状態をhistoryへ積み、
+     goBack()でそれをポップして復元するシンプルな履歴スタック。
+     ============================================================ */
+  function emptyFilters() {
+    return { intensity: [], sweetness: [], mood: [], base: [], carbonated: [] };
+  }
+  var state = { screen: "start", genre: "cocktail", registryGenre: "cocktail", answers: {}, qIndex: 0, results: [], detailId: null, pendingPref: null, searchText: "", filters: emptyFilters(), authMode: "login" };
+  var history = [];
+
+  function navigate(screen, patch) {
+    history.push(Object.assign({}, state));
+    state = Object.assign({}, state, { screen: screen }, patch || {});
+    render();
+  }
+
+  function goBack() {
+    state = history.length
+      ? history.pop()
+      : { screen: "start", genre: "cocktail", registryGenre: "cocktail", answers: {}, qIndex: 0, results: [], detailId: null, pendingPref: null, searchText: "", filters: emptyFilters(), authMode: "login" };
+    render();
+  }
+
+  /* ============================================================
+     5. RENDER HELPERS
+     ============================================================ */
+  function el(html) {
+    var t = document.createElement("template");
+    t.innerHTML = html.trim();
+    return t.content.firstChild;
+  }
+
+  // 戻ると本当に失われる入力がある画面かどうか(質問の途中/好み選択の途中)
+  function hasUnsavedInput() {
+    return state.screen === "question" || (state.screen === "detail" && state.pendingPref);
+  }
+
+  function confirmGoHome() {
+    if (state.screen === "start") return; // すでにトップなら何もしない
+    if (!hasUnsavedInput()) { history = []; state.screen = 'start'; render(); return; }
+    var message = hasUnsavedInput() ? "トップに戻りますか?<br>入力中の内容は失われます" : "トップに戻りますか?";
+    var overlay = el(
+      '<div class="modal-overlay"><div class="modal-card">' +
+      '<div class="modal-text">' + message + "</div>" +
+      '<div class="modal-actions">' +
+      '<button class="modal-cancel">キャンセル</button>' +
+      '<button class="modal-confirm">トップに戻る</button>' +
+      "</div></div></div>"
+    );
+    document.body.appendChild(overlay);
+    overlay.addEventListener("click", function (e) { if (e.target === overlay) overlay.remove(); });
+    overlay.querySelector(".modal-cancel").addEventListener("click", function () { overlay.remove(); });
+    overlay.querySelector(".modal-confirm").addEventListener("click", function () {
+      overlay.remove();
+      history = [];
+      state = { screen: "start", genre: "cocktail", registryGenre: "cocktail", answers: {}, qIndex: 0, results: [], detailId: null, pendingPref: null, searchText: "", filters: emptyFilters(), authMode: "login" };
+      render();
+    });
+  }
+
+  function renderNewPassword(root) {
+    root.appendChild(topbar(false));
+    root.appendChild(el('<h2 style="text-align:center;">新しいパスワードを設定</h2>'));
+
+    var pwInput = el('<input class="search-input" type="password" placeholder="新しいパスワード(6文字以上)" autocomplete="new-password" />');
+    root.appendChild(pwInput);
+
+    var errBox = el('<div class="err" style="text-align:center;min-height:14px;margin-top:8px;"></div>');
+    root.appendChild(errBox);
+
+    var submitBtn = el('<button class="primary-btn" style="margin-top:4px;">設定する</button>');
+    submitBtn.addEventListener("click", async function () {
+      var password = pwInput.value;
+      if (!password || password.length < 6) {
+        errBox.textContent = "6文字以上のパスワードを入力してください";
+        return;
+      }
+      submitBtn.disabled = true;
+      submitBtn.textContent = "設定中...";
+      var result = await supabaseClient.auth.updateUser({ password: password });
+      submitBtn.disabled = false;
+      submitBtn.textContent = "設定する";
+      if (result.error) {
+        errBox.textContent = result.error.message;
+        return;
+      }
+      currentUser = result.data.user;
+      await loadStockFromServer();
+      isPasswordRecovery = false;
+      history = [];
+      state.screen = "start";
+      render();
+    });
+    root.appendChild(submitBtn);
+  }
+
+  function renderAuth(root) {
+    root.appendChild(topbar(true));
+
+    if (authLinkError) {
+      var linkErrorBox = el('<div class="err" style="text-align:center;margin:10px 0;"></div>');
+      linkErrorBox.textContent = authLinkError;
+      root.appendChild(linkErrorBox);
+    }
+
+    if (state.authMode === "reset") {
+      root.appendChild(el('<h2 style="text-align:center;">パスワード再設定</h2>'));
+      root.appendChild(el('<div class="result-tagline">登録したメールアドレスに再設定用のリンクを送ります</div>'));
+
+      var resetEmailInput = el('<input class="search-input" type="email" placeholder="メールアドレス" autocomplete="email" />');
+      root.appendChild(resetEmailInput);
+
+      var resetErrBox = el('<div class="err" style="text-align:center;min-height:14px;margin-top:8px;"></div>');
+      root.appendChild(resetErrBox);
+
+      var resetBtn = el('<button class="primary-btn" style="margin-top:4px;">送信する</button>');
+      resetBtn.addEventListener("click", async function () {
+        var email = resetEmailInput.value.trim();
+        if (!email) {
+          resetErrBox.textContent = "メールアドレスを入力してください";
+          return;
+        }
+        var redirectUrl = authRedirectUrl();
+        if (!redirectUrl) {
+          resetErrBox.textContent = "メール認証には、公開済みのHTTPSサイトでこのページを開いてください";
+          return;
+        }
+        resetBtn.disabled = true;
+        resetBtn.textContent = "送信中...";
+        var result = await supabaseClient.auth.resetPasswordForEmail(email, { redirectTo: redirectUrl });
+        resetBtn.disabled = false;
+        resetBtn.textContent = "送信する";
+        if (result.error) {
+          resetErrBox.textContent = result.error.message;
+          return;
+        }
+        resetErrBox.style.color = "var(--text-secondary)";
+        resetErrBox.textContent = "再設定用のメールを送信しました。メール内のリンクを開いてください";
+      });
+      root.appendChild(resetBtn);
+
+      var backToLogin = el('<button class="ghost-btn">ログイン画面に戻る</button>');
+      backToLogin.addEventListener("click", function () { state.authMode = "login"; render(); });
+      root.appendChild(backToLogin);
+      return;
+    }
+
+    root.appendChild(el(
+      '<h2 style="text-align:center;">' + (state.authMode === "signup" ? "新規登録" : "ログイン") + "</h2>"
+    ));
+
+    var emailInput = el('<input class="search-input" type="email" placeholder="メールアドレス" autocomplete="email" />');
+    var pwInput = el('<input class="search-input" type="password" placeholder="パスワード(6文字以上)" autocomplete="current-password" style="margin-top:10px;" />');
+    root.appendChild(emailInput);
+    root.appendChild(pwInput);
+
+    var errBox = el('<div class="err" style="text-align:center;min-height:14px;margin-top:8px;"></div>');
+    root.appendChild(errBox);
+
+    var submitBtn = el(
+      '<button class="primary-btn" style="margin-top:4px;">' + (state.authMode === "signup" ? "登録する" : "ログイン") + "</button>"
+    );
+    submitBtn.addEventListener("click", async function () {
+      var email = emailInput.value.trim();
+      var password = pwInput.value;
+      if (!email || !password) {
+        errBox.textContent = "メールアドレスとパスワードを入力してください";
+        return;
+      }
+      var redirectUrl = authRedirectUrl();
+      if (state.authMode === "signup" && !redirectUrl) {
+        errBox.textContent = "メール認証には、公開済みのHTTPSサイトでこのページを開いてください";
+        return;
+      }
+      submitBtn.disabled = true;
+      submitBtn.textContent = "処理中...";
+
+      var result = state.authMode === "signup"
+        ? await supabaseClient.auth.signUp({ email: email, password: password, options: { emailRedirectTo: redirectUrl } })
+        : await supabaseClient.auth.signInWithPassword({ email: email, password: password });
+
+      submitBtn.disabled = false;
+      submitBtn.textContent = state.authMode === "signup" ? "登録する" : "ログイン";
+
+      if (result.error) {
+        errBox.textContent = result.error.message;
+        return;
+      }
+      if (state.authMode === "signup" && !result.data.session) {
+        errBox.style.color = "var(--text-secondary)";
+        errBox.textContent = "確認メールを送信しました。メール内のリンクを開いてからログインしてください";
+        return;
+      }
+      currentUser = result.data.user;
+      await loadStockFromServer();
+      navigate("start");
+    });
+    root.appendChild(submitBtn);
+
+    if (state.authMode === "login") {
+      var forgotBtn = el('<button class="ghost-btn">パスワードをお忘れですか?</button>');
+      forgotBtn.addEventListener("click", function () { state.authMode = "reset"; render(); });
+      root.appendChild(forgotBtn);
+    }
+
+    var toggleBtn = el(
+      '<button class="ghost-btn">' +
+      (state.authMode === "signup" ? "アカウントをお持ちの方はこちら" : "はじめての方はこちら(新規登録)") +
+      "</button>"
+    );
+    toggleBtn.addEventListener("click", function () {
+      state.authMode = state.authMode === "signup" ? "login" : "signup";
+      render();
+    });
+    root.appendChild(toggleBtn);
+  }
+
+  function topbar(showBack) {
+    var wrap = document.createElement("div");
+    wrap.className = "topbar";
+    if (showBack) {
+      var b = el('<button class="back-btn" aria-label="戻る">&lsaquo;</button>');
+      b.addEventListener("click", goBack);
+      wrap.appendChild(b);
+    }
+    var logo = el('<button class="logo" aria-label="BAR LOG ホーム">BAR LOG</button>');
+    logo.addEventListener("click", confirmGoHome);
+    wrap.appendChild(logo);
+    return wrap;
+  }
+
+  // 色見本のCSS背景を組み立てる。colorToがあればグラデーション、なければ単色
+  function swatchBg(d) {
+    return d.colorTo ? "linear-gradient(to bottom, " + d.color + ", " + d.colorTo + ")" : d.color;
+  }
+
+  // hexカラーを指定の透明度のrgba()に変換(詳細画面の背景の淡い色付けに使用)
+  function hexToRgba(hex, alpha) {
+    var r = parseInt(hex.slice(1, 3), 16);
+    var g = parseInt(hex.slice(3, 5), 16);
+    var b = parseInt(hex.slice(5, 7), 16);
+    return "rgba(" + r + "," + g + "," + b + "," + alpha + ")";
+  }
+
+  var GLASS_LABEL = { rock: "ロック", highball: "ハイボール", coupe: "クープ", mug: "マグ" };
+  function glassLegend() {
+    var row = el('<div class="legend-row"></div>');
+    Object.keys(GLASS_LABEL).forEach(function (key) {
+      row.appendChild(el(
+        '<div class="legend-item">' +
+        '<div class="swatch swatch-md glass-' + key + '" style="background:var(--surface-2);"></div>' +
+        '<div class="legend-label">' + GLASS_LABEL[key] + "</div></div>"
+      ));
+    });
+    return row;
+  }
+
+  /* ============================================================
+     6. SCREENS
+     ============================================================ */
+  function renderGenreSelect(root) {
+    root.appendChild(topbar(true));
+    root.appendChild(el('<h2 style="text-align:center;">今夜はどっち?</h2>'));
+
+    var nav = el('<div class="nav-list"></div>');
+    Object.keys(GENRES).forEach(function (key) {
+      var item = el(
+        '<button class="nav-item"><div><div class="nav-title">' + GENRES[key].label + "</div></div></button>"
+      );
+      item.addEventListener("click", function () {
+        navigate("question", { genre: key, answers: {}, qIndex: 0 });
+      });
+      nav.appendChild(item);
+    });
+    root.appendChild(nav);
+  }
+
+  function renderBadges(root) {
+    root.appendChild(topbar(true));
+    root.appendChild(el('<h2 style="text-align:center;">達成バッジ</h2>'));
+
+    var earned = earnedBadgeIds(stock);
+    var earnedCount = Object.keys(earned).length;
+    var rank = overallRank(earnedCount);
+    root.appendChild(el(
+      '<div class="result-tagline">' + earnedCount + " / " + BADGES.length + " 達成" +
+      '<span class="rank-summary rank-' + rank + '">' + rank + "</span></div>"
+    ));
+
+    var card = el('<div class="card"></div>');
+    BADGES.forEach(function (b) {
+      var isEarned = !!earned[b.id];
+      card.appendChild(el(
+        '<div class="log-row" style="cursor:default;"><div>' +
+        '<div class="log-name">' + b.label + "</div>" +
+        '<div class="log-meta">' + b.desc + "</div></div>" +
+        '<span class="badge-chip rank-' + b.rank + (isEarned ? " earned" : " locked") + '">' +
+        (isEarned ? RANK_LABEL[b.rank] : "未達成") + "</span></div>"
+      ));
+    });
+    root.appendChild(card);
+  }
+
+  function icon(name) {
+    var paths = {
+      home: '<path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><path d="M9 21v-7h6v7"/>',
+      glass: '<path d="M4 3h16l-2 9a6 6 0 0 1-12 0z"/><path d="M12 18v3M8 21h8"/>',
+      search: '<circle cx="10.8" cy="10.8" r="7"/><path d="m16 16 5 5"/>',
+      log: '<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/>',
+      heart: '<path d="M20.8 8.5c0 4.6-8.8 10.2-8.8 10.2S3.2 13.1 3.2 8.5a4.5 4.5 0 0 1 8.8-1.3 4.5 4.5 0 0 1 8.8 1.3z"/>',
+      user: '<circle cx="12" cy="8" r="4"/><path d="M4.5 21c.5-4 3.1-6 7.5-6s7 2 7.5 6"/>',
+      award: '<circle cx="12" cy="8" r="5"/><path d="m8.5 12-1.5 9 5-3 5 3-1.5-9"/>'
+      ,map: '<circle cx="5" cy="6" r="2"/><circle cx="18" cy="5" r="2"/><circle cx="12" cy="18" r="2"/><path d="m7 6 9-1M6 8l5 8M17 7l-4 9"/>'
+    };
+    return '<svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + paths[name] + '</svg>';
+  }
+
+  // Small inline illustrations use each drink's existing glass type and palette.
+  function drinkIllustration(d) {
+    var color = /^#[0-9a-fA-F]{3,8}$/.test(d.color) ? d.color : '#a9c7de';
+    var to = d.colorTo && /^#[0-9a-fA-F]{3,8}$/.test(d.colorTo) ? d.colorTo : color;
+    var uid = 'g' + String(d.id).replace(/[^a-zA-Z0-9]/g, '');
+    var shape, garnish = '', details = '';
+    if (d.glass === 'highball') {
+      shape = '<path d="M27 17h42l-5 62q-2 8-16 8t-16-8z" fill="url(#glass)" stroke="#c2d0e3" stroke-width="1.5"/><path d="M30 38h36l-3 39q-1 7-15 7t-15-7z" fill="url(#liquid)" opacity=".85"/><path d="M32 43h31" stroke="#f9fcff" opacity=".42"/><path d="M38 52l10 6-7 11-8-7zM52 59l9 4-6 12-10-4z" fill="#e8f4ff" opacity=".2"/><circle cx="55" cy="49" r="2" fill="#fff" opacity=".36"/><circle cx="42" cy="76" r="1.5" fill="#fff" opacity=".46"/><path d="M35 23l4 51" stroke="#fff" opacity=".32" stroke-width="2"/>';
+      garnish = /(?:ライム|レモン)(?:が映|が浮|を添|の輪切り|のスライス)/.test(d.look) ? '<path d="M64 13l-8 18" stroke="#e6edf5" stroke-width="2"/><circle cx="67" cy="24" r="8" fill="#d4dcaa" stroke="#f1f4d4" stroke-width="2"/><path d="M67 16v16M59 24h16" stroke="#839b6e" opacity=".7"/>' : '';
+    } else if (d.glass === 'coupe') {
+      shape = '<path d="M17 24h62c-3 19-13 30-31 30S20 43 17 24z" fill="url(#glass)" stroke="#c5d1df" stroke-width="1.5"/><path d="M20 33h56c-5 13-14 19-28 19S25 46 20 33z" fill="url(#liquid)" opacity=".9"/><path d="M48 54v29M32 86h32" stroke="#c5d1df" stroke-width="2.5" stroke-linecap="round"/><path d="M24 34c4 10 8 13 12 15" fill="none" stroke="#fff" stroke-width="2" opacity=".3"/>';
+      garnish = /チェリー|さくらんぼ/.test(d.look) ? '<circle cx="57" cy="36" r="4" fill="#a84653"/><path d="M57 33c2-6 6-9 10-10" stroke="#8fae78" fill="none" stroke-width="1.5"/>' : (/オリーブ/.test(d.look) ? '<path d="M51 35l17 8" stroke="#d8c3a2" stroke-width="1.4"/><ellipse cx="53" cy="36" rx="5" ry="3" fill="#9cae6e"/>' : '');
+    } else if (d.glass === 'mug') {
+      shape = '<path d="M23 31h47v46q0 8-8 8H31q-8 0-8-8z" fill="url(#glass)" stroke="#c5d1df" stroke-width="1.7"/><path d="M26 41h41v34q0 7-7 7H33q-7 0-7-7z" fill="url(#liquid)" opacity=".88"/><path d="M70 38h6q11 0 11 12v12q0 12-11 12h-6" fill="none" stroke="#c5d1df" stroke-width="4"/><path d="M30 46v30" stroke="#fff" stroke-width="2" opacity=".35"/>';
+      garnish = /ビール|エール|ラガー|IPA|スタウト/.test(d.name + d.recipe) ? '<path d="M28 28q5-9 11-2 6-9 12 0 8-7 15 2v13H28z" fill="#f0e6d4" stroke="#fff2e1" stroke-width="1"/>' : '';
+    } else if (d.glass === 'cup') {
+      shape = '<path d="M19 38h58l-7 31q-3 14-22 14T26 69z" fill="url(#glass)" stroke="#c5d1df" stroke-width="1.6"/><path d="M22 46h52l-6 24q-3 11-20 11T28 70z" fill="url(#liquid)" opacity=".9"/><path d="M23 48h50M29 54l4 17" stroke="#fff" stroke-width="2" opacity=".3"/>';
+      garnish = /(?:ミント|ハーブ)(?:の緑|が浮|を飾)/.test(d.look) ? '<path d="M62 39q7-13 15-8" fill="none" stroke="#9cac81" stroke-width="2"/><ellipse cx="70" cy="32" rx="7" ry="3" fill="#a0bf85" transform="rotate(-27 70 32)"/>' : '';
+    } else {
+      shape = '<path d="M21 33h54l-5 45q-1 8-22 8t-22-8z" fill="url(#glass)" stroke="#c5d1df" stroke-width="1.7"/><path d="M25 49h46l-4 27q-1 7-19 7t-19-7z" fill="url(#liquid)" opacity=".88"/><path d="M33 53l11 4-5 14-11-5zM51 54l13 2-4 14-12-3z" fill="#eaf2ff" opacity=".18"/><path d="M29 40l4 34" stroke="#fff" stroke-width="2" opacity=".32"/>';
+      garnish = /(?:オレンジ|レモン|ライム)(?:の皮|が浮|を添|の輪切り|のスライス)/.test(d.look) ? '<path d="M66 45q3-14 14-15" fill="none" stroke="#cbb786" stroke-width="2"/><circle cx="76" cy="34" r="6" fill="#d4b781" stroke="#ead8aa" stroke-width="1.5"/>' : '';
+    }
+    // Fine reflections, cold glass and carbonation add depth at the larger sizes.
+    if (d.glass === 'highball' || d.glass === 'rock' || d.glass === 'mug') {
+      details = '<path d="M30 18h35" stroke="#fff" stroke-width="1" opacity=".58"/><path d="M36 37l-2 9M63 47l-2 11" stroke="#fff" stroke-width="1.2" opacity=".43" stroke-linecap="round"/><circle cx="28" cy="56" r="1.5" fill="#eef6ff" opacity=".45"/><circle cx="70" cy="65" r="1" fill="#eef6ff" opacity=".38"/>';
+    } else if (d.glass === 'coupe') {
+      details = '<path d="M17 24h62" stroke="#fff" stroke-width="1.5" opacity=".58"/><path d="M32 31q7 2 12 1" stroke="#fff" opacity=".43" stroke-linecap="round"/><ellipse cx="48" cy="87" rx="19" ry="2" fill="#aab8cc" opacity=".25"/>';
+    } else {
+      details = '<path d="M20 39h56" stroke="#fff" stroke-width="1.2" opacity=".52"/><path d="M33 51l-2 13" stroke="#fff" stroke-width="1.2" opacity=".38"/>';
+    }
+    if (d.carbonated) details += '<circle cx="44" cy="47" r="1" fill="#fff" opacity=".66"/><circle cx="53" cy="53" r="1.3" fill="#fff" opacity=".55"/><circle cx="39" cy="63" r=".9" fill="#fff" opacity=".7"/><circle cx="56" cy="68" r=".8" fill="#fff" opacity=".6"/><circle cx="48" cy="75" r="1" fill="#fff" opacity=".65"/>';
+    return '<svg class="drink-illustration" viewBox="0 0 96 96" fill="none" aria-hidden="true"><defs><linearGradient id="liquid-' + uid + '" x1=".2" y1="0" x2=".8" y2="1"><stop stop-color="' + color + '"/><stop offset="1" stop-color="' + to + '"/></linearGradient><linearGradient id="glass-' + uid + '" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ebf4ff" stop-opacity=".13"/><stop offset=".55" stop-color="#ffffff" stop-opacity=".03"/><stop offset="1" stop-color="#d8e8ff" stop-opacity=".2"/></linearGradient></defs>' + (shape + garnish + details).replace(/url\(#glass\)/g,'url(#glass-' + uid + ')').replace(/url\(#liquid\)/g,'url(#liquid-' + uid + ')') + '</svg>';
+  }
+
+  // Stable within the day; saved ratings favor similar drinks not yet recorded.
+  function todayDrink() {
+    var day = new Date();
+    var key = day.getFullYear() * 372 + (day.getMonth() + 1) * 31 + day.getDate();
+    var profile = tasteProfile();
+    if (!profile.ready) return DRINKS[key % DRINKS.length];
+    var visited = {};
+    profile.rated.forEach(function (item) { visited[item.drink.id] = true; });
+    var candidates = DRINKS.filter(function (d) { return !visited[d.id]; });
+    if (!candidates.length) candidates = DRINKS;
+    candidates.sort(function (a, b) { return personalScore(b, profile) - personalScore(a, profile) || a.id.localeCompare(b.id); });
+    var relevant = candidates.filter(function (d) { return personalScore(d, profile) >= 0.35; });
+    return relevant.length ? relevant[key % Math.min(5, relevant.length)] : candidates[key % candidates.length];
+  }
+
+  // Favorites are stored on this device separately from the existing Supabase logs.
+  function favoriteKey() { return "barlog:favorites:" + (currentUser ? currentUser.id : "guest"); }
+  function favoriteIds() {
+    try { var ids = JSON.parse(localStorage.getItem(favoriteKey()) || "[]"); return Array.isArray(ids) ? ids : []; }
+    catch (e) { return []; }
+  }
+  function toggleFavorite(id) {
+    var ids = favoriteIds(); var index = ids.indexOf(id);
+    if (index < 0) ids.push(id); else ids.splice(index, 1);
+    try { localStorage.setItem(favoriteKey(), JSON.stringify(ids)); } catch (e) { /* private browsing */ }
+    render();
+  }
+
+  function renderStart(root) {
+    root.appendChild(topbar(false));
+    root.appendChild(el('<div class="v6-hero"><div class="v6-kicker">BAR LOG</div><div class="v6-title">今夜、何を飲もう。</div><div class="v6-copy">気分に合う一杯を見つけて、飲んだら記録する。</div></div>'));
+    var today = todayDrink(), profile = tasteProfile();
+    var alreadyTried = profile.rated.some(function (item) { return item.drink.id === today.id; });
+    var reason = personalReason(today, profile) || (profile.ready && !alreadyTried ? 'まだ飲んでいない、新しい候補' : '今日はこの一杯から');
+    var pick = el('<button class="today-card"><span class="today-icon">' + drinkIllustration(today) + '</span><span class="today-text"><span class="today-eyebrow">今日の一杯</span><span class="today-name">' + today.name + '</span><span class="today-line">' + reason + '</span></span><span class="row-arrow"></span></button>');
+    pick.addEventListener('click', function () { navigate('detail', {detailId: today.id, pendingPref: null}); }); root.appendChild(pick);
+    var choose = el('<button class="v6-primary"><div><small>気分で探す</small><strong>今夜の一杯を診断</strong></div><div class="v6-go"></div></button>');
+    choose.addEventListener('click', function () { var keys = Object.keys(GENRES); if (keys.length === 1) navigate('question', {genre: keys[0], answers: {}, qIndex: 0}); else navigate('genreSelect'); });
+    root.appendChild(choose);
+    var registry = el('<button class="v6-secondary"><div><strong>カクテルを探す</strong><span>全' + DRINKS.length + '種類を検索</span></div><span class="row-arrow"></span></button>');
+    registry.addEventListener('click', function () { navigate('registry', {searchText: ''}); }); root.appendChild(registry);
+    var mapBtn = el('<button class="v6-secondary">' + icon('map') + '<div><strong>COCKTAIL MAP</strong><span>飲んだ一杯から世界を広げる</span></div><span class="row-arrow"></span></button>');
+    mapBtn.addEventListener('click', function () { navigate('map', { revealId: null }); }); root.appendChild(mapBtn);
+    root.appendChild(el('<div class="v6-section">あなたの記録</div>'));
+    if (currentUser && loadError) {
+      var errCard = el('<div class="card"><div class="sub-note">記録を読み込めませんでした</div></div>');
+      var retry = el('<button class="ghost-btn">再読み込み</button>');
+      retry.addEventListener('click', async function () { retry.disabled = true; await loadStockFromServer(); render(); });
+      errCard.appendChild(retry); root.appendChild(errCard);
+    }
+    var last = stock.length ? DRINKS.find(function(d){return d.id === stock[stock.length-1].drinkId;}) : null;
+    root.appendChild(el('<div class="v6-stats"><div class="v6-stat"><div class="v6-stat-num">' + stock.length + '</div><div class="v6-stat-label">飲んだ記録</div></div><div class="v6-stat"><div class="v6-stat-num" style="font-size:16px;padding-top:5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + (last ? last.name : '—') + '</div><div class="v6-stat-label">最近の一杯</div></div></div>'));
+    if (!currentUser) root.appendChild(el('<div class="sub-note">診断は登録なしで使えます。飲んだ一杯を記録すると、次のおすすめが好みに近づきます。</div>'));
+  }
+
+  function drinkListRow(d, context, note) {
+    var row = el('<button class="drink-list-row"><span class="drink-list-art">' + drinkIllustration(d) + '</span><span class="drink-list-content"><span class="drink-list-name">' + d.name + '</span><span class="drink-list-look">' + d.look + '</span>' + (note ? '<span class="drink-list-note">' + note + '</span>' : '') + '</span><span class="row-arrow"></span></button>');
+    row.addEventListener('click', function(){ navigate('detail', {detailId:d.id, pendingPref:null}); });
+    return row;
+  }
+
+  function nextMapDrink(d) {
+    var tried = {};
+    stock.forEach(function (log) { tried[log.drinkId] = true; });
+    return relatedDrinks(d, DRINKS.length).find(function (item) { return !tried[item.id]; }) || null;
+  }
+
+  function renderMap(root) {
+    root.appendChild(topbar(true));
+    root.appendChild(el('<div class="map-heading"><div class="v6-kicker">EXPLORE</div><h2>COCKTAIL MAP</h2><p>飲んだ一杯から、次の一杯へ。</p></div>'));
+    var tried = {};
+    stock.forEach(function (log) { tried[log.drinkId] = true; });
+    var count = Object.keys(tried).filter(function (id) { return DRINKS.some(function (d) { return d.id === id; }); }).length;
+    root.appendChild(el('<div class="map-progress"><strong>' + count + '</strong><span> / ' + DRINKS.length + '種類を探索</span></div>'));
+    if (!currentUser) root.appendChild(el('<div class="sub-note">マップは自由に探索できます。飲んだ記録を残すとノードが点灯します。</div>'));
+    if (state.revealId) {
+      var revealed = DRINKS.find(function (d) { return d.id === state.revealId; });
+      if (revealed) {
+        var next = nextMapDrink(revealed);
+        var reveal = el('<div class="map-reveal"><div class="map-reveal-mark">' + icon('map') + '</div><div class="section-label">新しい一杯を発見</div><h3>' + revealed.name + 'が点灯しました</h3><p>' + (next ? '次に近い一杯は「' + next.name + '」。' : 'このベースの一杯をもっと探してみましょう。') + '</p></div>');
+        if (next) {
+          var nextBtn = el('<button class="map-next-btn">次の一杯を見る <span class="row-arrow"></span></button>');
+          nextBtn.addEventListener('click', function () { navigate('detail', { detailId: next.id, pendingPref: null }); });
+          reveal.appendChild(nextBtn);
+        }
+        root.appendChild(reveal);
+      }
+    }
+    var order = ['gin','whiskey','rum','tequila','vodka','liqueur','other'];
+    order.forEach(function (base) {
+      var drinks = DRINKS.filter(function (d) { return d.genre === 'cocktail' && d.base === base; });
+      if (!drinks.length) return;
+      var discovered = drinks.filter(function (d) { return tried[d.id]; }).length;
+      var group = el('<section class="map-group"><div class="map-group-head"><span class="map-hub"></span><div><h3>' + (BASE_LABEL[base] || base) + '</h3><span>' + discovered + ' / ' + drinks.length + ' 見つけた</span></div></div><div class="map-nodes"></div></section>');
+      var nodes = group.querySelector('.map-nodes');
+      drinks.forEach(function (d) {
+        var lit = !!tried[d.id];
+        var node = el('<button class="map-node' + (lit ? ' lit' : '') + (state.revealId === d.id ? ' just-lit' : '') + '" aria-label="' + d.name + (lit ? '、飲んだ' : '、未開拓') + '"><span class="map-star"></span><span class="map-node-name">' + d.name + '</span><small>' + (lit ? '飲んだ' : '未開拓') + '</small></button>');
+        node.addEventListener('click', function () { navigate('detail', { detailId: d.id, pendingPref: null }); });
+        nodes.appendChild(node);
+      });
+      root.appendChild(group);
+    });
+  }
+
+  function renderFavorites(root) {
+    root.appendChild(topbar(false)); root.appendChild(el('<h2>お気に入り</h2>'));
+    var ids = favoriteIds(), drinks = ids.map(function(id){return DRINKS.find(function(d){return d.id === id;});}).filter(Boolean);
+    if (!drinks.length) { root.appendChild(el('<div class="card empty">あとで飲みたい・また飲みたい一杯を、詳細画面から追加できます。</div>')); }
+    else { var list = el('<div class="drink-list"></div>'); drinks.forEach(function(d){
+      list.appendChild(drinkListRow(d));
+    }); root.appendChild(list); }
+    root.appendChild(el('<div class="sub-note">お気に入りはこの端末のブラウザに保存されます。</div>'));
+  }
+
+  function renderProfile(root) {
+    root.appendChild(topbar(false)); root.appendChild(el('<h2>マイページ</h2>'));
+    var account = el('<div class="card account-card"><div class="section-label">アカウント</div><div class="my-email"></div></div>');
+    account.querySelector('.my-email').textContent = currentUser ? (currentUser.email || 'ログイン中') : 'ログインしていません';
+    var auth = el('<button class="primary-btn">' + (currentUser ? 'ログアウト' : 'ログイン・新規登録') + '</button>');
+    auth.addEventListener('click',function(){if(currentUser) supabaseClient.auth.signOut(); else navigate('auth');});
+    account.appendChild(auth); root.appendChild(account);
+    var profile = tasteProfile();
+    var insight = el('<div class="card taste-card"><div class="section-label">あなたの好み</div></div>');
+    if (profile.ready) {
+      insight.appendChild(el('<div class="taste-title">' + tasteSummary(profile) + '</div>'));
+      insight.appendChild(el('<div class="sub-note">' + profile.rated.length + '種類の評価をもとにした傾向です。記録が増えるとおすすめにも反映されます。</div>'));
+    } else {
+      insight.appendChild(el('<div class="taste-title">好みを見つけている途中</div>'));
+      insight.appendChild(el('<div class="sub-note">' + (currentUser ? '異なる3種類以上を評価し、うち2種類以上を「好み」にすると傾向が見えます。現在 ' + profile.rated.length + '種類を評価済み。' : '飲んだ記録を残すと、好みの傾向がここに表示されます。') + '</div>'));
+    }
+    root.appendChild(insight);
+    var nav = el('<div class="nav-list"></div>');
+    var items = [{screen:'map',title:'COCKTAIL MAP',sub:'未開拓の一杯を見つける',icon:'map'},{screen:'stock',title:'飲んだ記録',sub:stock.length+'件',icon:'log'},{screen:'badges',title:'達成バッジ',sub:Object.keys(earnedBadgeIds(stock)).length+' / '+BADGES.length+' 達成',icon:'award'}];
+    items.forEach(function(item){var b=el('<button class="nav-item">'+icon(item.icon)+'<div><div class="nav-title">'+item.title+'</div><div class="nav-sub">'+item.sub+'</div></div><span class="row-arrow"></span></button>');b.addEventListener('click',function(){navigate(item.screen);});nav.appendChild(b);});root.appendChild(nav);
+    root.appendChild(el('<div class="sub-note">飲んだ記録はログイン中のアカウントに保存されます。お気に入りはこの端末に保存されます。</div>'));
+  }
+
+  function renderTabbar() {
+    var old = document.querySelector('.tabbar'); if (old) old.remove();
+    if (state.screen === 'auth' || state.screen === 'newPassword') return;
+    var bar = el('<nav class="tabbar" aria-label="メインメニュー"></nav>');
+    var currentTab = state.screen;
+    if (currentTab === 'stock' || currentTab === 'badges' || currentTab === 'map') currentTab = 'profile';
+    if (currentTab === 'genreSelect' || currentTab === 'question' || currentTab === 'results') currentTab = 'start';
+    if (currentTab === 'detail') {
+      currentTab = 'start';
+      for (var i = history.length - 1; i >= 0; i--) {
+        var previous = history[i].screen;
+        if (previous === 'registry' || previous === 'favorites' || previous === 'profile' || previous === 'stock' || previous === 'map' || previous === 'results' || previous === 'start') {
+          currentTab = previous === 'stock' || previous === 'map' ? 'profile' : previous === 'results' ? 'start' : previous; break;
+        }
+      }
+    }
+    [{screen:'start',label:'ホーム',icon:'home'},{screen:'registry',label:'探す',icon:'search'},{screen:'favorites',label:'お気に入り',icon:'heart'},{screen:'profile',label:'マイページ',icon:'user'}].forEach(function(item){
+      var active = currentTab === item.screen;
+      var b = el('<button class="'+(active?'active':'')+'"'+(active?' aria-current="page"':'')+'>'+icon(item.icon)+'<span>'+item.label+'</span></button>');
+      b.addEventListener('click',function(){if(!active){if(item.screen === 'start') confirmGoHome(); else navigate(item.screen);}});bar.appendChild(b);
+    }); document.body.appendChild(bar);
+  }
+
+  function renderQuestion(root) {
+    root.appendChild(topbar(true));
+    var questions = GENRES[state.genre].questions;
+    var q = questions[state.qIndex];
+
+    var prog = el('<div class="progress"></div>');
+    for (var i = 0; i < questions.length; i++) {
+      prog.appendChild(el('<div class="dot' + (i <= state.qIndex ? " active" : "") + '"></div>'));
+    }
+    root.appendChild(prog);
+
+    root.appendChild(el('<div class="q-count">Q' + (state.qIndex + 1) + " / " + questions.length + "</div>"));
+    root.appendChild(el('<div class="q-title">' + q.title + "</div>"));
+
+    var card = el('<div class="card" style="display:flex;flex-direction:column;gap:8px;"></div>');
+    q.options.forEach(function (opt) {
+      var b = el('<button class="option-btn">' + opt.label + "</button>");
+      b.addEventListener("click", function () {
+        var nextAnswers = Object.assign({}, state.answers);
+        nextAnswers[q.key] = opt.value;
+        if (state.qIndex + 1 < questions.length) {
+          navigate("question", { answers: nextAnswers, qIndex: state.qIndex + 1 });
+        } else {
+          var results = computeResults(state.genre, nextAnswers);
+          navigate("results", { answers: nextAnswers, results: results });
+        }
+      });
+      card.appendChild(b);
+    });
+    root.appendChild(card);
+  }
+
+  // 質問の回答から「診断結果」風の一文を組み立てる
+  function diagnosisText(answers) {
+    var mood = answers.mood || 0;
+    var sweetness = answers.sweetness || 0;
+    var intensity = answers.intensity || 0;
+    var moodPhrase = mood < 0 ? "静かな夜" : mood > 0 ? "賑やかな夜" : "ほどよい夜";
+    var tastePhrase = sweetness < 0 ? "ドライ" : sweetness > 0 ? "甘め" : "バランス型の甘さ";
+    var bodyPhrase = intensity < 0 ? "軽やか" : intensity > 0 ? "コクのある" : "ちょうどいい飲みごたえ";
+    var basePhrase = answers.base ? BASE_LABEL[answers.base] + "派" : "何でも派";
+    return moodPhrase + "に、" + tastePhrase + "で" + bodyPhrase + "な一杯を選ぶ、" + basePhrase + "。";
+  }
+
+  function renderResults(root) {
+    root.appendChild(topbar(true));
+    var diagText = diagnosisText(state.answers);
+    var diagCard = el('<div class="diagnosis-card"><div class="diagnosis-label">TONIGHT</div><div class="diagnosis-text">' + diagText + '</div><button class="share-btn">診断結果をシェア</button></div>');
+    var shareBtn = diagCard.querySelector(".share-btn");
+    shareBtn.addEventListener("click", function () {
+      var shareText = diagText + "\nおすすめは「" + (state.results[0] ? state.results[0].name : "") + "」でした。 #BARLOG";
+      var shareUrl = (typeof location !== "undefined" && location.href) ? location.href : "";
+      if (navigator.share) navigator.share({ title: "BAR LOG診断", text: shareText, url: shareUrl }).catch(function () {});
+      else if (navigator.clipboard) navigator.clipboard.writeText(shareText + " " + shareUrl).then(function () { var original=shareBtn.textContent; shareBtn.textContent="コピーしました"; setTimeout(function(){shareBtn.textContent=original;},1500); }).catch(function(){});
+    });
+    root.appendChild(diagCard);
+    var profile = tasteProfile();
+    root.appendChild(el('<div class="result-context">' + (profile.ready ? '今の回答を中心に、飲んだ記録の好みも反映しています。' : '今の回答をもとに選びました。飲んだ記録が増えると好みも反映されます。') + '</div>'));
+    root.appendChild(el('<div class="v6-results-head"><h2>5杯を選びました</h2><span>好みと冒険</span></div>'));
+    var list = el('<div class="v6-result-list"></div>');
+    state.results.forEach(function (d, idx) {
+      var why = personalReason(d, profile);
+      var kind = state.results.kinds && state.results.kinds[idx] || 'おすすめ';
+      var card = el('<button class="v6-drink' + (idx === 0 ? ' best' : '') + '"><span class="v6-result-art">' + drinkIllustration(d) + '</span><span class="v6-result-copy"><span class="v6-rank">' + (idx === 0 ? 'いちばん近い一杯' : kind) + '</span><span class="v6-drink-name">' + d.name + '</span><span class="v6-drink-line">' + d.look + '</span>' + (why ? '<span class="result-why">' + why + '</span>' : '') + '</span><span class="v6-chevron"></span></button>');
+      card.addEventListener("click", function () { navigate("detail", { detailId: d.id, pendingPref: null }); });
+      list.appendChild(card);
+    });
+    root.appendChild(list);
+  }
+
+  var TRAIT_AXES = [
+    { key: "intensity", left: "軽やか", right: "コク・重厚" },
+    { key: "sweetness", left: "辛口", right: "甘口" }
+  ];
+  var SCENE_AXES = [
+    { key: "mood", left: "静か", right: "賑やか" }
+  ];
+  function combinedTraitsBox(d) {
+    var wrap = el('<div class="info-box" style="border-left:3px solid ' + d.color + ';"></div>');
+    function section(label, axes) {
+      wrap.appendChild(el('<div class="info-label">' + label + "</div>"));
+      axes.forEach(function (axis) {
+        var value = d.tags[axis.key] || 0;
+        var percent = ((value + 2) / 4) * 100;
+        wrap.appendChild(el(
+          '<div class="trait-row">' +
+          '<div class="trait-labels"><span>' + axis.left + '</span><span>' + axis.right + "</span></div>" +
+          '<div class="trait-track"><div class="trait-dot" style="left:' + percent + '%;background:' + d.color + ';"></div></div>' +
+          "</div>"
+        ));
+      });
+    }
+    section("特徴", TRAIT_AXES);
+    wrap.appendChild(el('<div class="trait-divider"></div>'));
+    section("似合うシーン", SCENE_AXES);
+    return wrap;
+  }
+
+  function renderDetail(root) {
+    root.appendChild(topbar(true));
+    var d = DRINKS.find(function (x) { return x.id === state.detailId; });
+
+
+
+    root.appendChild(el('<h2 style="text-align:center;">' + d.name + "</h2>"));
+    root.appendChild(el(
+      '<div class="result-tagline">' + subLabel(d) + " ・ " + d.line +
+      (d.carbonated ? ' <span class="carb-badge">炭酸あり</span>' : "") + "</div>"
+    ));
+
+    root.appendChild(el('<div class="drink-visual"><div class="detail-glass">' + drinkIllustration(d) + '</div><div class="drink-visual-caption"><div class="info-label">見た目</div><p>' + d.look + '</p></div></div>'));
+    if (history.length && history[history.length - 1].screen === 'map' && !stock.some(function (log) { return log.drinkId === d.id; })) {
+      root.appendChild(el('<div class="map-detail-hint">' + subLabel(d) + 'の未開拓の一杯。気になったらお気に入りに入れて、次のバーで探してみてください。</div>'));
+    }
+    var favorite = el('<button class="favorite-toggle" aria-pressed="' + (favoriteIds().indexOf(d.id) !== -1) + '">' + icon('heart') + '<span>' + (favoriteIds().indexOf(d.id) !== -1 ? 'お気に入りから外す' : 'あとで飲みたい・また飲みたい') + '</span></button>');
+    favorite.addEventListener('click', function(){toggleFavorite(d.id);}); root.appendChild(favorite);
+    root.appendChild(combinedTraitsBox(d));
+    root.appendChild(el(
+      '<div class="info-box" style="border-left:3px solid ' + d.color + ';"><div class="info-label">' + infoLabel1(d) + "</div>" + d.recipe + "</div>"
+    ));
+    var triviaBox = el(
+      '<div class="trivia-quote" style="border-left-color:' + d.color + ';"><div class="info-label">豆知識</div>' + d.trivia + "</div>"
+    );
+    root.appendChild(triviaBox);
+
+    if (d.triviaLong) {
+      var moreToggle = el('<button class="more-toggle">もっと知る &darr;</button>');
+      var moreBox = null;
+      moreToggle.addEventListener("click", function () {
+        if (moreBox) {
+          moreBox.remove();
+          moreBox = null;
+          moreToggle.innerHTML = "もっと知る &darr;";
+        } else {
+          moreBox = el(
+            '<div class="info-box" style="margin-top:8px;border-left:3px solid ' + d.color + ';">' +
+            '<div class="trivia-section"><div class="trivia-section-label">由来</div>' + d.triviaLong.origin + "</div>" +
+            '<div class="trivia-section"><div class="trivia-section-label">バリエーション</div>' + d.triviaLong.variation + "</div>" +
+            '<div class="trivia-section"><div class="trivia-section-label">飲み方のこだわり</div>' + d.triviaLong.tip + "</div>" +
+            "</div>"
+          );
+          moreToggle.after(moreBox);
+          moreToggle.innerHTML = "閉じる &uarr;";
+        }
+      });
+      root.appendChild(moreToggle);
+    }
+
+    root.appendChild(el(
+      '<div class="section-label">' + (d.genre === "cocktail" ? "同じベースのお酒" : "同じスタイルのお酒") + "</div>"
+    ));
+    var chipRow = el('<div class="chip-row"></div>');
+    relatedDrinks(d).forEach(function (sim) {
+      var chip = el('<button class="chip">' + sim.name + "</button>");
+      chip.addEventListener("click", function () { navigate("detail", { detailId: sim.id, pendingPref: null }); });
+      chipRow.appendChild(chip);
+    });
+    root.appendChild(chipRow);
+
+    if (currentUser) {
+      var prefRow = el('<div class="pref-row"></div>');
+      [3, 2, 1].forEach(function (v) {
+        var b = el('<button class="pref-btn' + (state.pendingPref === v ? " selected" : "") + '">' + PREF_LABEL[v] + "</button>");
+        b.addEventListener("click", function () { state.pendingPref = v; render(); });
+        prefRow.appendChild(b);
+      });
+      root.appendChild(prefRow);
+
+      var errBox = el('<div class="err" style="text-align:center;min-height:14px;"></div>');
+      root.appendChild(errBox);
+
+      var saveBtn = el('<button class="primary-btn">飲んだ記録を残す</button>');
+      saveBtn.addEventListener("click", async function () {
+        if (!state.pendingPref) {
+          errBox.textContent = "好みを選んでください";
+          return;
+        }
+        saveBtn.disabled = true;
+        saveBtn.textContent = "記録中...";
+        var userRes = await supabaseClient.auth.getUser();
+        var user = userRes.data && userRes.data.user;
+        if (!user) {
+          errBox.textContent = "セッションが切れました。再度ログインしてください";
+          saveBtn.disabled = false;
+          saveBtn.textContent = "飲んだ記録を残す";
+          return;
+        }
+        var insertRes = await supabaseClient.from("logs").insert({
+          user_id: user.id, drink_id: d.id, preference: state.pendingPref
+        });
+        if (insertRes.error) {
+          errBox.textContent = "保存に失敗しました。もう一度お試しください";
+          saveBtn.disabled = false;
+          saveBtn.textContent = "飲んだ記録を残す";
+          return;
+        }
+        var firstTime = !stock.some(function (log) { return log.drinkId === d.id; });
+        stock.push({ drinkId: d.id, timestamp: new Date().toISOString(), preference: state.pendingPref });
+        history = [];
+        state = Object.assign({}, state, { screen: firstTime ? "map" : "stock", revealId: firstTime ? d.id : null, pendingPref: null });
+        render();
+      });
+      root.appendChild(saveBtn);
+
+      // キャンセル導線:記録せず、来た画面に戻る
+      var cancelBtn = el('<button class="ghost-btn">やめる</button>');
+      cancelBtn.addEventListener("click", goBack);
+      root.appendChild(cancelBtn);
+    } else {
+      root.appendChild(el(
+        '<div class="info-box" style="text-align:center;">' +
+        '<div class="info-label">記録</div>' +
+        '<div style="font-size:13px;color:var(--text-secondary);">記録すると次のおすすめが好みに近づきます。保存にはログインが必要です</div></div>'
+      ));
+      var loginBtn = el('<button class="primary-btn">ログインする</button>');
+      loginBtn.addEventListener("click", function () { navigate("auth"); });
+      root.appendChild(loginBtn);
+
+      var backBtn = el('<button class="ghost-btn">戻る</button>');
+      backBtn.addEventListener("click", goBack);
+      root.appendChild(backBtn);
+    }
+  }
+
+  // 登録一覧の絞り込み設定。数値タグは-1(低め)/0(普通)/1(高め)の3バケットに丸めて比較する
+  var FILTER_GROUPS = [
+    { key: "intensity", label: "コクの強さ", options: [
+      { value: -1, label: "軽やか" }, { value: 0, label: "普通" }, { value: 1, label: "コク・重厚" }
+    ]},
+    { key: "sweetness", label: "甘辛", options: [
+      { value: -1, label: "辛口" }, { value: 0, label: "普通" }, { value: 1, label: "甘口" }
+    ]},
+    { key: "mood", label: "似合うシーン", options: [
+      { value: -1, label: "静か" }, { value: 0, label: "普通" }, { value: 1, label: "賑やか" }
+    ]},
+    { key: "base", label: "ベース", options: [
+      { value: "gin", label: "ジン" }, { value: "whiskey", label: "ウイスキー" }, { value: "rum", label: "ラム" },
+      { value: "vodka", label: "ウォッカ" }, { value: "tequila", label: "テキーラ" }, { value: "liqueur", label: "リキュール" },
+      { value: "other", label: "その他" }
+    ]},
+    { key: "carbonated", label: "炭酸", options: [
+      { value: true, label: "炭酸あり" }, { value: false, label: "炭酸なし" }
+    ]}
+  ];
+  function bucket(value) { return value < 0 ? -1 : (value > 0 ? 1 : 0); }
+  function matchesFilters(d, filters) {
+    return FILTER_GROUPS.every(function (group) {
+      var selected = filters[group.key];
+      if (!selected.length) return true;
+      var actual = group.key === "intensity" || group.key === "sweetness" || group.key === "mood"
+        ? bucket(d.tags[group.key] || 0)
+        : d[group.key];
+      return selected.indexOf(actual) !== -1;
+    });
+  }
+
+  function renderRegistry(root) {
+    root.appendChild(topbar(true));
+    root.appendChild(el('<h2>探す</h2>'));
+
+    var genreKeys = Object.keys(GENRES);
+    if (genreKeys.length > 1) {
+      var tabRow = el('<div class="tab-row"></div>');
+      genreKeys.forEach(function (key) {
+        var tab = el(
+          '<button class="tab-btn' + (state.registryGenre === key ? " active" : "") + '">' + GENRES[key].label + "</button>"
+        );
+        tab.addEventListener("click", function () { state.registryGenre = key; render(); });
+        tabRow.appendChild(tab);
+      });
+      root.appendChild(tabRow);
+    }
+
+    var input = el('<input class="search-input" type="text" placeholder="お酒の名前で検索" />');
+    input.value = state.searchText;
+    root.appendChild(input);
+
+    var filterHeaderRow = el('<div style="display:flex;justify-content:flex-end;"></div>');
+    var resetBtn = el('<button class="filter-reset">絞り込みをリセット</button>');
+    resetBtn.addEventListener("click", function () { state.filters = emptyFilters(); render(); });
+    filterHeaderRow.appendChild(resetBtn);
+    root.appendChild(filterHeaderRow);
+
+    FILTER_GROUPS.forEach(function (group) {
+      var groupEl = el('<div class="filter-group"></div>');
+      groupEl.appendChild(el('<div class="filter-group-label">' + group.label + "</div>"));
+      var chipRow = el('<div class="chip-row"></div>');
+      group.options.forEach(function (opt) {
+        var isActive = state.filters[group.key].indexOf(opt.value) !== -1;
+        var chip = el('<button class="chip' + (isActive ? " active" : "") + '">' + opt.label + "</button>");
+        chip.addEventListener("click", function () {
+          var list = state.filters[group.key];
+          var i = list.indexOf(opt.value);
+          if (i === -1) list.push(opt.value); else list.splice(i, 1);
+          render();
+        });
+        chipRow.appendChild(chip);
+      });
+      groupEl.appendChild(chipRow);
+      root.appendChild(groupEl);
+    });
+
+    var listWrap = el('<div></div>');
+    root.appendChild(listWrap);
+
+    function renderList() {
+      listWrap.innerHTML = "";
+      var q = state.searchText.trim();
+      var filtered = DRINKS.filter(function (d) {
+        return d.genre === state.registryGenre && (!q || d.name.indexOf(q) !== -1) && matchesFilters(d, state.filters);
+      });
+
+      if (!filtered.length) {
+        listWrap.appendChild(el('<div class="card empty">該当するお酒がありません</div>'));
+        return;
+      }
+
+      var list = el('<div class="drink-list"></div>');
+      filtered.forEach(function (d) {
+        list.appendChild(drinkListRow(d, 'search', currentUser ? (isUntried(d.id) ? 'まだ飲んでいない' : '飲んだ記録あり') : ''));
+      });
+      listWrap.appendChild(list);
+    }
+
+    input.addEventListener("input", function () {
+      state.searchText = input.value;
+      renderList();
+    });
+
+    renderList();
+  }
+
+  function renderStock(root) {
+    root.appendChild(topbar(true));
+    root.appendChild(el('<h2>飲んだ記録</h2>'));
+
+    if (!stock.length) {
+      if (currentUser) {
+        root.appendChild(el('<div class="card empty">まだ記録がありません</div>'));
+      } else {
+        root.appendChild(el('<div class="card empty">ログインすると記録を保存できます</div>'));
+        var loginBtn = el('<button class="primary-btn" style="margin-top:10px;">ログインする</button>');
+        loginBtn.addEventListener("click", function () { navigate("auth"); });
+        root.appendChild(loginBtn);
+      }
+      return;
+    }
+
+    var list = el('<div class="drink-list"></div>');
+    var sorted = stock.slice().reverse();
+    sorted.forEach(function (log) {
+      var d = DRINKS.find(function (x) { return x.id === log.drinkId; });
+      var date = new Date(log.timestamp);
+      var dateStr = (date.getMonth() + 1) + '/' + date.getDate();
+      if (d) list.appendChild(drinkListRow(d, 'log', dateStr + ' · ' + (PREF_LABEL[log.preference] || '記録済み')));
+      else list.appendChild(el('<div class="card sub-note">記録したお酒を表示できません</div>'));
+    });
+    root.appendChild(list);
+  }
+
+  /* ============================================================
+     7. MAIN RENDER
+     ============================================================ */
+  function render() {
+    var app = document.getElementById("app");
+    app.innerHTML = "";
+    var root = el('<div class="screen"></div>');
+    app.appendChild(root);
+    if (state.screen === "auth") renderAuth(root);
+    else if (state.screen === "newPassword") renderNewPassword(root);
+    else if (state.screen === "start") renderStart(root);
+    else if (state.screen === "badges") renderBadges(root);
+    else if (state.screen === "genreSelect") renderGenreSelect(root);
+    else if (state.screen === "question") renderQuestion(root);
+    else if (state.screen === "results") renderResults(root);
+    else if (state.screen === "detail") renderDetail(root);
+    else if (state.screen === "registry") renderRegistry(root);
+    else if (state.screen === "stock") renderStock(root);
+    else if (state.screen === "map") renderMap(root);
+    else if (state.screen === "favorites") renderFavorites(root);
+    else if (state.screen === "profile") renderProfile(root);
+    renderTabbar();
+  }
+
+  // 起動時にログイン済みかどうかを確認し、画面を出し分ける
+  async function boot() {
+    var urlParams = new URLSearchParams(window.location.search);
+    var hashParams = new URLSearchParams(window.location.hash.slice(1));
+    var linkError = urlParams.get("error") || hashParams.get("error");
+    if (linkError) {
+      authLinkError = linkError === "access_denied"
+        ? "認証リンクが無効か、期限切れです。新しいメールを送信してください。"
+        : "メールの認証に失敗しました。新しいメールを送信してください。";
+      // URLのエラーを残すと、次に開いた時も同じメッセージが表示される。
+      urlParams.delete("error");
+      urlParams.delete("error_code");
+      urlParams.delete("error_description");
+      hashParams.delete("error");
+      hashParams.delete("error_code");
+      hashParams.delete("error_description");
+      var cleanUrl = window.location.pathname + (urlParams.toString() ? "?" + urlParams : "") + (hashParams.toString() ? "#" + hashParams : "");
+      window.history.replaceState(null, "", cleanUrl);
+    }
+    try {
+      var sessionRes = await supabaseClient.auth.getSession();
+      if (sessionRes.data && sessionRes.data.session) {
+        currentUser = sessionRes.data.session.user;
+        await loadStockFromServer();
+      } else {
+        currentUser = null;
+      }
+    } catch (e) {
+      currentUser = null;
+    }
+    if (!isPasswordRecovery) state.screen = authLinkError ? "auth" : "start";
+    render();
+  }
+
+  // ログアウトしたら、ストックをクリアしてスタート画面に戻す(ログイン画面は強制しない)
+  supabaseClient.auth.onAuthStateChange(function (event, session) {
+    if (event === "SIGNED_OUT") {
+      currentUser = null;
+      stock = [];
+      history = [];
+      state = { screen: "start", genre: "cocktail", registryGenre: "cocktail", answers: {}, qIndex: 0, results: [], detailId: null, pendingPref: null, searchText: "", filters: emptyFilters(), authMode: "login" };
+      render();
+    } else if (event === "SIGNED_IN" && session) {
+      currentUser = session.user;
+    } else if (event === "PASSWORD_RECOVERY") {
+      isPasswordRecovery = true;
+      history = [];
+      state.screen = "newPassword";
+      render();
+    }
+  });
+
+  boot();
+})();
+</script>
+</body>
+</html>
