@@ -5,7 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BAR LOG</title>
 <meta name="description" content="気分を答えるだけで、今夜の一杯を5択で提案。飲んだ記録も残せるカクテル診断アプリ。">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%A5%83%3C/text%3E%3C/svg%3E">
+<link rel="icon" type="image/png" href="./apple-touch-icon.png?v=3">
+<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=3">
+<meta name="apple-mobile-web-app-title" content="BAR LOG">
 <meta property="og:type" content="website">
 <meta property="og:title" content="BAR LOG">
 <meta property="og:description" content="気分を答えるだけで、今夜の一杯を5択で提案。飲んだ記録も残せるカクテル診断アプリ。">
@@ -770,10 +772,19 @@ html{background:#08090b;overflow-x:hidden}body{background:#08090b;font-family:-a
   // メールのリンクは、公開中のこのHTMLと同じパスに戻す。
   // サブディレクトリや /index.html で公開した場合も正しいページに戻る。
   function authRedirectUrl() {
-    if (window.location.protocol !== "https:" && window.location.hostname !== "localhost") {
+    if (window.location.protocol !== "https:" || window.location.hostname === "localhost") {
       return null;
     }
     return window.location.origin + window.location.pathname;
+  }
+
+  function authMessage(error) {
+    var code = error && error.code;
+    if (code === "email_address_invalid") return "メールアドレスの形式を確認してください。";
+    if (code === "weak_password") return "もう少し複雑なパスワードにしてください。";
+    if (code === "email_exists" || code === "user_already_exists") return "登録済みの場合はログインしてください。パスワードを忘れた場合は再設定できます。";
+    if (code === "over_email_send_rate_limit" || code === "over_request_rate_limit" || (error && error.status === 429)) return "短時間に送信が集中しています。少し時間をおいて再度お試しください。";
+    return "通信または登録処理に失敗しました。接続を確認して再度お試しください。";
   }
 
   var stock = [];
@@ -1170,53 +1181,76 @@ html{background:#08090b;overflow-x:hidden}body{background:#08090b;font-family:-a
       '<h2 style="text-align:center;">' + (state.authMode === "signup" ? "新規登録" : "ログイン") + "</h2>"
     ));
 
-    var emailInput = el('<input class="search-input" type="email" placeholder="メールアドレス" autocomplete="email" />');
-    var pwInput = el('<input class="search-input" type="password" placeholder="パスワード(6文字以上)" autocomplete="current-password" style="margin-top:10px;" />');
-    root.appendChild(emailInput);
-    root.appendChild(pwInput);
+    var signingUp = state.authMode === "signup";
+    var form = el('<form novalidate></form>');
+    var emailInput = el('<input class="search-input" type="email" inputmode="email" autocapitalize="none" spellcheck="false" placeholder="メールアドレス" autocomplete="email" required aria-label="メールアドレス" />');
+    var pwInput = el('<input class="search-input" type="password" placeholder="パスワード(6文字以上)" autocomplete="' + (signingUp ? "new-password" : "current-password") + '" minlength="6" required aria-label="パスワード" style="margin-top:10px;" />');
+    form.appendChild(emailInput);
+    form.appendChild(pwInput);
 
     var errBox = el('<div class="err" style="text-align:center;min-height:14px;margin-top:8px;"></div>');
-    root.appendChild(errBox);
+    errBox.setAttribute("role", "status");
+    errBox.setAttribute("aria-live", "polite");
+    form.appendChild(errBox);
 
     var submitBtn = el(
-      '<button class="primary-btn" style="margin-top:4px;">' + (state.authMode === "signup" ? "登録する" : "ログイン") + "</button>"
+      '<button type="submit" class="primary-btn" style="margin-top:4px;">' + (signingUp ? "登録する" : "ログイン") + "</button>"
     );
-    submitBtn.addEventListener("click", async function () {
+    form.addEventListener("submit", async function (event) {
+      event.preventDefault();
+      if (submitBtn.disabled) return;
       var email = emailInput.value.trim();
       var password = pwInput.value;
+      errBox.style.color = "";
       if (!email || !password) {
         errBox.textContent = "メールアドレスとパスワードを入力してください";
         return;
       }
+      if (!emailInput.checkValidity()) { errBox.textContent = "メールアドレスの形式を確認してください"; emailInput.focus(); return; }
+      if (signingUp && password.length < 6) { errBox.textContent = "パスワードは6文字以上で入力してください"; pwInput.focus(); return; }
       var redirectUrl = authRedirectUrl();
-      if (state.authMode === "signup" && !redirectUrl) {
+      if (signingUp && !redirectUrl) {
         errBox.textContent = "メール認証には、公開済みのHTTPSサイトでこのページを開いてください";
         return;
       }
       submitBtn.disabled = true;
       submitBtn.textContent = "処理中...";
 
-      var result = state.authMode === "signup"
-        ? await supabaseClient.auth.signUp({ email: email, password: password, options: { emailRedirectTo: redirectUrl } })
-        : await supabaseClient.auth.signInWithPassword({ email: email, password: password });
-
-      submitBtn.disabled = false;
-      submitBtn.textContent = state.authMode === "signup" ? "登録する" : "ログイン";
-
-      if (result.error) {
-        errBox.textContent = result.error.message;
-        return;
+      try {
+        var result = signingUp
+          ? await supabaseClient.auth.signUp({ email: email, password: password, options: { emailRedirectTo: redirectUrl } })
+          : await supabaseClient.auth.signInWithPassword({ email: email, password: password });
+        if (result.error) { errBox.textContent = authMessage(result.error); return; }
+        if (signingUp && !result.data.session) {
+          errBox.style.color = "var(--text-secondary)";
+          errBox.textContent = "確認メールを送信しました。受信箱と迷惑メールを確認し、リンクを開いてください。すでに登録済みの場合はログインをお試しください。";
+          resendBtn.hidden = false;
+          return;
+        }
+        currentUser = result.data.user;
+        await loadStockFromServer();
+        navigate("start");
+      } catch (error) {
+        errBox.textContent = authMessage(error);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = signingUp ? "登録する" : "ログイン";
       }
-      if (state.authMode === "signup" && !result.data.session) {
-        errBox.style.color = "var(--text-secondary)";
-        errBox.textContent = "確認メールを送信しました。メール内のリンクを開いてからログインしてください";
-        return;
-      }
-      currentUser = result.data.user;
-      await loadStockFromServer();
-      navigate("start");
     });
-    root.appendChild(submitBtn);
+    form.appendChild(submitBtn);
+    root.appendChild(form);
+
+    var resendBtn = el('<button type="button" class="ghost-btn" hidden>確認メールを再送する</button>');
+    resendBtn.addEventListener("click", async function () {
+      resendBtn.disabled = true;
+      try {
+        var res = await supabaseClient.auth.resend({ type: "signup", email: emailInput.value.trim(), options: { emailRedirectTo: authRedirectUrl() } });
+        errBox.style.color = res.error ? "" : "var(--text-secondary)";
+        errBox.textContent = res.error ? authMessage(res.error) : "確認メールを再送しました。受信箱と迷惑メールを確認してください。";
+      } catch (error) { errBox.style.color = ""; errBox.textContent = authMessage(error); }
+      finally { resendBtn.disabled = false; }
+    });
+    root.appendChild(resendBtn);
 
     if (state.authMode === "login") {
       var forgotBtn = el('<button class="ghost-btn">パスワードをお忘れですか?</button>');
