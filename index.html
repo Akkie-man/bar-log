@@ -890,8 +890,8 @@ html,body{background:#08090b}body{-webkit-font-smoothing:antialiased}
   /* ============================================================
      2. STORE — 飲んだ記録の保存/読み込み(Supabase)
      ============================================================ */
-  var SUPABASE_URL = "https://jmzxuepikefvhjzythmz.supabase.co";
-  var SUPABASE_ANON_KEY = "sb_publishable_4EzO8RrYEQN12nECT-UbSg_1-sQFEO-";
+  var SUPABASE_URL = "https://oxfsugturbsfgaxtaemn.supabase.co";
+  var SUPABASE_ANON_KEY = "sb_publishable_9B5_ynk3ZQngXyWxuPLwZw_0cAva3XT";
   var supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   var currentUser = null; // ログイン中はSupabaseのuserオブジェクト、未ログインならnull
   var isPasswordRecovery = false;
@@ -921,7 +921,7 @@ html,body{background:#08090b}body{-webkit-font-smoothing:antialiased}
   // ログイン中ユーザーの記録をサーバーから取得してstockに反映
   async function loadStockFromServer() {
     try {
-      var res = await supabaseClient.from("logs").select("*").order("created_at", { ascending: true });
+      var res = await supabaseClient.from("bar_logs").select("*").order("created_at", { ascending: true });
       if (res.error) throw res.error;
       stock = res.data.map(function (row) {
         return { drinkId: row.drink_id, timestamp: row.created_at, preference: row.preference };
@@ -3013,7 +3013,7 @@ html,body{background:#08090b}body{-webkit-font-smoothing:antialiased}
           saveBtn.textContent = "飲んだ一杯を記録";
           return;
         }
-        var insertRes = await supabaseClient.from("logs").insert({
+        var insertRes = await supabaseClient.from("bar_logs").insert({
           user_id: user.id, drink_id: d.id, preference: state.pendingPref
         });
         if (insertRes.error) {
