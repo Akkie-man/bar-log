@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BAR LOG</title>
+<meta name="google-adsense-account" content="ca-pub-4960959858706803">
 <meta name="description" content="気分を答えるだけで、今夜の一杯を5択で提案。飲んだ記録も残せるカクテル診断アプリ。">
 <link rel="icon" type="image/png" href="./apple-touch-icon.png?v=3">
 <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=3">
@@ -342,9 +343,136 @@ html{background:#08090b;overflow-x:hidden}body{background:#08090b;font-family:-a
 <style id="barlog-cocktail-map">
 .map-heading{display:flex;flex-direction:column;gap:7px}.map-heading p{color:var(--text-secondary);font-size:14px}.map-progress{padding:15px 17px;background:var(--surface-2);border-radius:17px;font-size:13px;color:var(--text-secondary)}.map-progress strong{font-size:25px;color:var(--text-primary);font-variant-numeric:tabular-nums}.map-group{position:relative;padding:2px 0 0 22px;border-left:1px solid #3b4658;margin-left:13px}.map-group-head{display:flex;align-items:center;margin-bottom:14px;position:relative}.map-hub{position:absolute;left:-30px;top:11px;width:15px;height:15px;border-radius:50%;background:#788dad;border:3px solid #1a2432;box-shadow:0 0 0 1px #52657f}.map-group-head h3{font-size:17px;font-weight:700}.map-group-head span:not(.map-hub){font-size:12px;color:var(--text-muted)}.map-nodes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;padding-bottom:23px}.map-node{position:relative;min-height:74px;padding:12px;background:#151920;border:1px solid #262d38;border-radius:15px;display:flex;flex-direction:column;align-items:flex-start;gap:5px;text-align:left;color:#a2aab7;min-width:0}.map-node:before{content:"";position:absolute;left:-23px;top:25px;width:21px;border-top:1px solid #3b4658}.map-node.lit{color:#f4f7fb;background:#202c3a;border-color:#435b77}.map-node.just-lit{box-shadow:0 0 0 1px #97baff,0 0 20px rgba(137,173,255,.26)}.map-star{width:8px;height:8px;flex:none;border-radius:50%;background:#555f6f}.map-node.lit .map-star{background:#add0ff;box-shadow:0 0 9px #9dc6ff}.map-node-name{font-size:13px;line-height:1.3;font-weight:650;overflow-wrap:anywhere}.map-node small{font-size:10px;color:var(--text-muted)}.map-node.lit small{color:#acc5e7}.map-reveal{background:linear-gradient(145deg,#263751,#1a2432);border-radius:20px;padding:22px;display:flex;flex-direction:column;gap:10px}.map-reveal-mark{width:38px;height:38px;border-radius:12px;background:#3d5272;color:#c8dcff;display:grid;place-items:center}.map-reveal h3{font-size:19px;font-weight:700;line-height:1.35}.map-reveal p{font-size:13px;color:#c2cedd}.map-next-btn{background:#e9edff;color:#11141e;border:0;border-radius:13px;text-align:left;padding:12px 14px;font-weight:650;display:flex;justify-content:space-between;align-items:center}.map-detail-hint{font-size:13px;line-height:1.6;color:#c4d2e8;background:#202b3a;border-radius:15px;padding:14px}.v6-secondary>.ui-icon{color:var(--accent2)}@media(max-width:350px){.map-nodes{grid-template-columns:1fr}}
 </style>
+<style id="barlog-daily-picks">
+/* 今日の一杯(三択) */
+.daily{display:flex;flex-direction:column;gap:12px;min-width:0}
+.daily-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.daily-head-right{display:flex;align-items:center;gap:10px}
+.daily .daily-reroll{display:flex;align-items:center;gap:6px;min-height:44px;padding:0 14px;border:0;border-radius:999px;background:var(--surface-2);color:var(--text-primary);font-size:14px;font-weight:650;white-space:nowrap}
+.daily .daily-reroll svg{width:16px;height:16px;flex:none}
+.daily .daily-reroll[aria-disabled="true"]{opacity:.5}
+.daily-title{font-size:20px;font-weight:700;letter-spacing:-.025em}
+.daily-count{font-size:13px;color:var(--text-muted);font-variant-numeric:tabular-nums}
+.daily-track{position:relative;display:flex;gap:12px;margin:0 -20px;padding:2px 20px 4px;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x mandatory;scroll-padding-left:20px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.daily-track::-webkit-scrollbar{display:none}
+.daily-track::after{content:"";flex:0 0 8px}
+.daily-card{flex:0 0 86%;min-width:0;scroll-snap-align:start;display:flex;flex-direction:column;background:var(--surface-2);border-radius:22px;overflow:hidden}
+.daily .daily-open{flex:1;display:flex;flex-direction:column;align-items:stretch;width:100%;padding:0;border:0;border-radius:0;background:none;color:inherit;text-align:left;font:inherit;transition:none}
+.daily .daily-open:active{transform:none;background:rgba(255,255,255,.03)}
+.daily-art{display:grid;place-items:center;height:118px;background:radial-gradient(circle at 50% 58%,#40516a 0%,#252f40 75%)}
+.daily-art .drink-illustration{width:108px;height:114px;filter:drop-shadow(0 10px 8px rgba(0,0,0,.28))}
+.daily-body{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:12px 16px 2px}
+.daily-slot{font-size:12px;font-weight:650;color:var(--accent2)}
+.daily-name{font-size:22px;font-weight:720;letter-spacing:-.03em;line-height:1.25}
+.daily-look{font-size:13px;line-height:1.6;color:var(--text-secondary)}
+.daily-reason{font-size:13px;line-height:1.6;color:#b9ceff}
+.daily .daily-swap{display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;margin:8px 16px 14px;padding:0 14px;border:0;border-radius:14px;background:#24272e;color:var(--text-primary);font-size:14px;font-weight:600}
+.daily .daily-swap svg{width:16px;height:16px;flex:none}
+.daily .daily-swap[disabled]{opacity:.5;cursor:default}
+.daily-nav{display:flex;align-items:center;justify-content:center;gap:16px}
+.daily .daily-step{width:44px;height:44px;min-height:44px;padding:0;border:0;border-radius:50%;background:var(--surface-2);color:var(--text-primary);font-size:22px;line-height:1}
+.daily .daily-step[aria-disabled="true"]{opacity:.35;cursor:default}
+.daily-dots{display:flex;align-items:center;gap:6px}
+.daily-dot{width:6px;height:6px;border-radius:999px;background:#3a3f4a}
+.daily-dot.active{width:18px;background:var(--text-primary)}
+.daily-note{font-size:13px;line-height:1.6;color:var(--text-secondary);text-align:center}
+.daily-note:empty{height:0;margin-top:-12px;overflow:hidden}
+@media(prefers-reduced-motion:reduce){.daily-track{scroll-behavior:auto}}
+
+
+/* 味の特徴チップ(ホーム・診断結果・詳細・検索で共通) */
+.tchips{display:flex;flex-wrap:wrap;gap:6px}
+.tchip{font-size:12px;line-height:1;padding:5px 9px;border-radius:999px;background:#24272e;color:var(--text-secondary);white-space:nowrap}
+.tchips.sm{gap:5px}.tchips.sm .tchip{font-size:11px;padding:4px 8px}
+.tchips.lg .tchip{font-size:14px;padding:8px 13px;color:#d6dae2}
+.tchips.xl{gap:10px}.tchips.xl .tchip{font-size:20px;padding:12px 18px;background:#20232a;color:#eceef3}
+
+/* 詳細の上部(注文用表示) */
+.order-head{display:flex;flex-direction:column;gap:10px;min-width:0}
+.order-name{font-size:32px;line-height:1.2;font-weight:760;letter-spacing:-.04em;overflow-wrap:anywhere}
+.order-en{font-size:15px;color:var(--text-secondary);letter-spacing:.01em}
+.order-line{font-size:14px;line-height:1.6;color:var(--text-secondary)}
+.order-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.order-btn{min-height:52px;padding:0 12px;border:0;border-radius:16px;background:var(--surface-2);color:var(--text-primary);font-size:15px;font-weight:650}
+.order-btn.primary{background:var(--text-primary);color:var(--bg)}
+
+/* 店になかった場合の代案 */
+.alt-panel{display:flex;flex-direction:column;gap:10px;scroll-margin-top:12px}
+.alt-panel h3{font-size:16px;font-weight:700}
+.alt-note{font-size:13px;line-height:1.6;color:var(--text-secondary)}
+.alt-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:12px;color:var(--text-muted)}
+.alt-foot button{min-height:44px;padding:0 14px;border:0;border-radius:12px;background:var(--surface-2);color:var(--text-primary);font-size:13px}
+
+/* 診断結果・検索のカード */
+.v6-result-copy .tchips{margin-top:1px}
+.v6-drink.best{grid-template-columns:96px minmax(0,1fr) 9px}
+.v6-drink.best .v6-result-art{width:96px;height:104px}
+.v6-drink.best .v6-result-art .drink-illustration{width:92px;height:98px}
+.v6-drink.best .v6-drink-name{font-size:21px}
+.result-go{display:block;margin-top:6px;font-size:13px;font-weight:650;color:var(--accent2)}
+.drink-list-content .tchips{margin:4px 0 2px}
+
+/* 年齢確認・基本ページ */
+.age-gate{display:flex;flex-direction:column;gap:12px;padding-top:7vh}
+.age-logo{font-size:13px;font-weight:750;letter-spacing:.14em}
+.age-gate h2{font-size:28px;line-height:1.3;letter-spacing:-.03em}
+.age-yes{min-height:56px}
+.age-no{width:100%;min-height:56px}
+a.order-btn,a.age-site{display:flex;align-items:center;justify-content:center;text-decoration:none}
+.guide-para{font-size:14px;line-height:1.8;color:var(--text-secondary)}
+.home-foot{display:flex;flex-direction:column;gap:6px;padding-top:4px}
+.age-note{font-size:12px;line-height:1.75;color:var(--text-muted)}
+.foot-links{display:flex;flex-wrap:wrap;gap:0 14px}
+.foot-link{display:inline-flex;align-items:center;min-height:44px;padding:0;border:0;border-radius:0;background:none;color:var(--text-secondary);font-size:13px;text-decoration:underline;text-underline-offset:4px}
+.daily-sub{margin-top:-6px;font-size:12px;line-height:1.6;color:var(--text-muted)}
+.rec-btn{width:100%;color:var(--accent2)}
+
+/* バーの過ごし方ガイド */
+.guide-lead{font-size:14px;line-height:1.7;color:var(--text-secondary)}
+.guide-block{display:flex;flex-direction:column;gap:10px}
+.guide-block h3{font-size:15px;font-weight:700;letter-spacing:-.01em}
+.guide-block ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:9px}
+.guide-block li{position:relative;padding-left:16px;font-size:14px;line-height:1.7;color:var(--text-secondary)}
+.guide-block li::before{content:"";position:absolute;left:2px;top:.8em;width:5px;height:5px;border-radius:50%;background:var(--accent2)}
+.guide-examples{display:flex;flex-wrap:wrap;gap:8px}
+.guide-examples .chip{min-height:44px;padding:0 16px;font-size:14px;border:0;background:var(--surface-2)}
+.guide-note{font-size:12px;line-height:1.75;color:var(--text-muted)}
+</style>
+
+<style id="barlog-finish">
+/* 最終仕上げ：黒背景、読みやすい文字、主役の一杯、明確な帰り道 */
+html,body{background:#08090b}body{-webkit-font-smoothing:antialiased}
+.topbar{gap:8px;align-items:center;flex-wrap:nowrap}.topbar .logo{white-space:nowrap}.studio-return{margin-left:auto;display:inline-flex;align-items:center;gap:3px;min-height:44px;padding:0 0 0 6px;color:#b4b8c1;font-size:11px;font-weight:600;text-decoration:none;white-space:nowrap}.studio-return svg{width:18px;height:18px;flex:none}.studio-return:focus-visible,.studio-card:focus-visible,.foot-link:focus-visible{outline:2px solid var(--accent2);outline-offset:4px}.studio-return:active{color:#fff}
+.v6-hero{padding:12px 0 4px}.v6-title{font-size:clamp(28px,8vw,36px);line-height:1.35;letter-spacing:-.045em}.v6-copy{margin-top:10px;font-size:13px;line-height:1.8;color:#a6aab3;text-wrap:pretty}
+.daily{gap:13px}.daily-head{gap:8px}.daily-title{font-size:20px;white-space:nowrap}.daily-head-right{gap:6px}.daily-count{font-size:11px}.daily .daily-reroll{font-size:12px;padding:0 10px;background:#17191e;color:#c4c8d1}.daily-card{background:#17191e;border-radius:20px}.daily-art{height:148px;background:radial-gradient(ellipse at 50% 65%,#303947 0%,#20252e 45%,#17191e 85%)}.daily-art .drink-illustration{width:126px;height:132px}.daily-body{padding:14px 18px 6px;gap:8px}.daily-name{font-size:23px;line-height:1.4;overflow-wrap:anywhere}.daily-look,.daily-reason{font-size:12px;line-height:1.75}.daily-reason{color:#b1c3e5}.daily .daily-swap{margin:10px 18px 16px;border-radius:12px;background:#23262d;color:#cbd0db;font-size:12px}.daily .daily-step{background:transparent;border:1px solid #2c3038}.daily-nav{gap:14px}.daily-dot.active{background:#afc5ed}
+.v6-primary{min-height:88px;border-radius:18px;background:#e4eaf5;padding:20px}.v6-primary strong{font-size:20px;line-height:1.5}.v6-primary small{font-size:11px;opacity:.7}.v6-secondary{border-radius:16px;min-height:74px;padding:16px 18px;background:#15171c}.v6-secondary strong{font-size:15px;line-height:1.6}.v6-secondary span:not(.row-arrow){font-size:12px;line-height:1.6}.v6-stats{gap:10px}.v6-stat{background:#15171c;border-radius:16px}.v6-section{margin-top:6px;font-size:13px;color:#a6aab3}.section-label{line-height:1.6}.sub-note{font-size:12px;line-height:1.85;color:#a0a5af}.home-foot{gap:14px;border-top:1px solid #252830;margin-top:12px;padding-top:22px}.age-note{color:#9a9faa;line-height:1.85}.foot-links{gap:2px 18px}.foot-link{font-size:12px;text-decoration:none;color:#b0b5c0}.foot-link:hover{text-decoration:underline}.studio-card{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px;border-radius:16px;background:#17191e;text-decoration:none;color:#f7f8fa;min-height:78px}.studio-card strong{display:block;font-size:14px;line-height:1.6}.studio-card small{display:block;color:#a6aab3;font-size:12px;margin-top:4px}.studio-card>span:last-child{color:#a8bedf;font-size:22px}.tabbar{background:rgba(13,15,19,.97)}.tabbar button{color:#9bA1ac}.tabbar button.active{background:#20252f;color:#dce6f8}.guide-lead,.guide-para,.map-heading p{line-height:1.85}.order-name{line-height:1.35}.order-btn,.primary-btn,.ghost-btn{line-height:1.5}
+@media(max-width:360px){#app{padding-left:16px;padding-right:16px}.daily-track{margin-left:-16px;margin-right:-16px;padding-left:16px;padding-right:16px;scroll-padding-left:16px}.daily-head-right{gap:4px}.daily .daily-reroll{padding:0 8px;font-size:11px}.daily-title{font-size:18px}.studio-return{font-size:10px}.daily-card{flex-basis:90%}.topbar .logo{font-size:15px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important}}
+</style>
+<style id="barlog-ads-preparation">
+.adsense-section{margin:28px 0 8px;padding-top:18px;border-top:1px solid var(--border);min-width:0;width:100%;overflow:hidden}.adsense-tag{font-size:12px;line-height:1.6;color:var(--text-muted);margin-bottom:12px}.adsbygoogle{width:100%;min-width:0}.adsense-section[hidden]{display:none}.adsense-section:has(ins[data-ad-status="unfilled"]){display:none}
+</style>
+<style id="barlog-collections">
+.collect-tabs{display:grid;grid-template-columns:1fr 1fr;gap:5px;padding:5px;background:#17191e;border-radius:15px}.collect-tabs button{border:0;border-radius:11px;background:none;color:#a6aab3;font-size:14px;font-weight:650;min-height:46px}.collect-tabs button.active{background:#303a4c;color:#eef3ff}.collection-list{display:flex;flex-direction:column;gap:14px}.collection-cover{display:flex;flex-direction:column;gap:13px;width:100%;padding:20px;background:#171b23;border:1px solid #2a303b;border-radius:20px;text-align:left}.collection-cover.complete{border-color:#657b9b}.collection-top{display:flex;justify-content:space-between;align-items:center;gap:12px}.collection-top strong{font-size:18px;line-height:1.5}.collection-count{font-size:12px;color:#bbcee9;white-space:nowrap}.collection-desc{font-size:13px;line-height:1.75;color:#adb4c0}.collection-art{display:flex;justify-content:center;align-items:center;gap:8px;min-height:82px;background:radial-gradient(ellipse at center,#303b4d,#171b23 75%);border-radius:14px}.collection-art .drink-illustration{width:70px;height:78px}.collection-bar{height:4px;overflow:hidden;border-radius:4px;background:#303641}.collection-bar span{height:100%;display:block;background:#9ab9ec}.collection-state{display:flex;align-items:center;justify-content:space-between;gap:8px;color:#c1cee3;font-size:12px}.collection-drink{display:flex;flex-direction:column;gap:10px;background:#17191e;border-radius:18px;padding:12px}.collection-drink .drink-list-row{background:none;padding:0;grid-template-columns:76px minmax(0,1fr) 9px}.collection-drink .drink-list-art{width:76px;height:82px}.collection-drink .drink-illustration{width:72px;height:78px}.collection-drink.untried .drink-list-art{opacity:.7}.collection-drink.recorded{border:1px solid #41516a}.collection-meta{display:flex;justify-content:space-between;gap:10px;padding:0 4px;font-size:12px;line-height:1.65;color:#bdcee9}.collection-wish{width:100%;min-height:44px;border:0;border-radius:11px;background:#262c37;color:#d8e2f3;font-size:13px;font-weight:600}.collection-drinks{display:flex;flex-direction:column;gap:12px}.collection-summary{background:#202936;border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:10px}.collection-summary strong{font-size:23px}.collection-back{border:0;background:transparent;color:#b5cdff;text-align:left;padding:0;min-height:44px;font-size:14px}.collection-note{font-size:12px;line-height:1.8;color:#a6aab3}@media(max-width:350px){.collection-cover{padding:16px}.collection-top strong{font-size:16px}.collection-art .drink-illustration{width:62px;height:72px}}
+</style>
+<style id="barlog-complete-covers">
+.collection-art{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px 8px;align-items:start;padding:14px 8px;background:radial-gradient(ellipse at 50% 25%,#2c3544,#171b23 80%)}.collection-mini{display:flex;flex-direction:column;align-items:center;min-width:0;gap:5px;text-align:center}.collection-mini .drink-illustration{width:68px;height:76px;max-width:100%;opacity:.75}.collection-mini>span{font-size:12px;line-height:1.5;color:#c2c9d5;overflow-wrap:anywhere;min-height:36px;display:flex;align-items:center;justify-content:center}.collection-mini small{font-size:11px;color:#868f9e;line-height:1.5}.collection-mini.experienced .drink-illustration{opacity:1}.collection-mini.experienced small{color:#bad0ef}.collection-cover{padding:18px}.collection-top{align-items:flex-start}.collection-top strong{font-size:17px}.collection-count{padding-top:4px}@media(max-width:350px){.collection-art{gap:12px 5px;padding:12px 4px}.collection-mini .drink-illustration{width:58px;height:66px}.collection-mini>span{font-size:11px}.collection-cover{padding:15px}}
+</style>
+<style id="barlog-layout-review">
+/* 全画面の余白、読みやすさ、狭幅での折り返しを統一 */
+#app{padding-left:20px;padding-right:20px;padding-bottom:calc(116px + env(safe-area-inset-bottom))}.screen{gap:20px}.screen h2{font-size:26px;line-height:1.4;overflow-wrap:anywhere}.topbar{gap:8px;min-height:48px}.topbar .logo{flex-shrink:0}.studio-return{font-size:12px}.back-btn{flex-shrink:0}.v6-hero{gap:0;padding:8px 0 0}.v6-copy{margin-top:10px;font-size:14px;line-height:1.8}.v6-secondary,.nav-item{gap:12px;padding:16px;align-items:center}.v6-secondary>div,.nav-item>div{flex:1;min-width:0}.v6-secondary>.ui-icon,.nav-item>.ui-icon{flex:none;width:22px;height:22px}.v6-secondary strong{display:block;font-size:16px;line-height:1.5}.v6-secondary span:not(.row-arrow){font-size:13px;line-height:1.7;margin-top:5px}.row-arrow{flex:none}.v6-section{margin:4px 0 -4px}.v6-stat{padding:16px 14px}.v6-stat-label{font-size:12px;line-height:1.6}.sub-note{line-height:1.85}
+.daily-head{align-items:center;gap:10px;flex-wrap:wrap}.daily-head-right{margin-left:auto}.daily .daily-reroll{font-size:13px}.daily-title{font-size:20px!important}.daily-count{font-size:12px}.daily-card{flex-basis:88%;align-self:stretch}.daily-body{padding:14px 16px 6px;gap:8px}.daily-name{font-size:22px;line-height:1.4;min-height:2.8em}.daily-art{height:138px}.daily-look,.daily-reason{font-size:13px;line-height:1.7}.daily .daily-swap{margin:10px 16px 14px;font-size:13px}.daily-slot{font-size:12px}.daily-nav{margin-top:0}.tchip{line-height:1.35}.tchips.sm .tchip{font-size:12px;padding:4px 8px}
+.collect-tabs{gap:6px;padding:5px}.collect-tabs button{font-size:15px;min-height:46px}.map-heading{gap:8px}.map-heading p{font-size:14px;line-height:1.8}.collection-list{gap:16px}.collection-cover{gap:12px;padding:16px;border-radius:18px}.collection-top{gap:8px;flex-wrap:wrap;align-items:center}.collection-top strong{font-size:18px;line-height:1.5;flex:1;min-width:140px}.collection-count{font-size:12px;padding-top:0}.collection-desc{font-size:14px;line-height:1.75}.collection-art{gap:12px 8px;padding:12px 4px}.collection-mini{gap:4px}.collection-mini .drink-illustration{width:60px;height:65px}.collection-mini>span{font-size:12px;min-height:3em;line-height:1.5}.collection-mini small{font-size:12px}.collection-state{font-size:12px;line-height:1.6}.collection-summary{padding:18px;gap:12px}.collection-summary h3{font-size:22px;line-height:1.5}.collection-summary strong{font-size:21px}.collection-note{font-size:13px;line-height:1.85}.collection-meta{font-size:12px;flex-wrap:wrap;gap:4px 10px}.collection-wish{font-size:14px;min-height:46px}.collection-drink{padding:14px;gap:12px}.collection-drink .drink-list-row{gap:12px}.collection-drink .drink-list-name{font-size:16px}.collection-drink .drink-list-look{font-size:13px}
+.map-group{padding-left:18px;margin-left:12px}.map-nodes{gap:10px}.map-node{padding:13px 11px;min-height:88px;gap:7px}.map-node-name{font-size:14px;line-height:1.5}.map-node small{font-size:12px;line-height:1.5}.map-group-head h3{font-size:18px;line-height:1.5}.map-reveal{padding:18px}.map-reveal p{font-size:14px;line-height:1.8}.map-progress{line-height:1.7}
+.order-head{gap:10px}.order-name{font-size:30px!important;line-height:1.4!important}.order-line{font-size:15px;line-height:1.8}.drink-visual .detail-glass{min-height:190px}.drink-visual-caption{padding:0 18px 18px}.drink-visual-caption p{font-size:15px;line-height:1.8}.order-btn{padding:12px 16px;line-height:1.6;font-size:14px}.rec-btn{background:#e4eaf5;color:#11141e;min-height:54px;font-size:16px;font-weight:700}.miss-btn{color:#b5bbc6;background:#15171c}.order-actions{gap:12px}.pref-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.pref-btn{padding:12px 6px;font-size:13px;line-height:1.5;min-width:0}.info-box{font-size:15px;line-height:1.8}.info-label{font-size:12px;line-height:1.6}.trivia-quote{font-size:15px;line-height:1.85}.more-toggle{font-size:14px}.favorite-toggle{font-size:15px}.section-label{font-size:13px}
+.search-input{font-size:16px;line-height:1.6;padding:13px 16px;border-radius:14px}.tab-row{flex-wrap:wrap}.tab-btn{font-size:14px;line-height:1.5;padding:12px;min-width:0}.filter-group{margin-top:0}.filter-group-label{font-size:13px;line-height:1.6;margin-bottom:8px}.chip-row{gap:8px}.chip{font-size:13px;line-height:1.4;padding:10px 12px;max-width:100%;white-space:normal;overflow-wrap:anywhere}.filter-reset{font-size:13px}.drink-list-row{gap:12px;padding:12px;border-radius:16px}.drink-list-name{font-size:16px;line-height:1.5}.drink-list-look{font-size:13px;line-height:1.6}.drink-list-note{font-size:12px;line-height:1.6}.v6-drink-name{line-height:1.5}.v6-drink-line{font-size:13px;line-height:1.7}.v6-drink.best .v6-drink-name{font-size:19px}.v6-result-copy{gap:6px}
+.guide-block{gap:12px}.guide-block h3{font-size:18px;line-height:1.6}.guide-para,.guide-lead{font-size:16px;line-height:1.9}.guide-block li{font-size:15px;line-height:1.9}.guide-block ul{gap:12px}.guide-examples{display:flex;flex-wrap:wrap;gap:8px}.guide-note{font-size:13px;line-height:1.85}.age-gate{padding-top:5vh;gap:16px}.age-gate h2{font-size:28px;line-height:1.5}.age-note{font-size:12px;line-height:1.9}.foot-links{gap:0 18px}.foot-link{font-size:13px}.home-foot{padding-top:20px;margin-top:8px}.account-card{gap:14px}.nav-sub{font-size:13px;line-height:1.7}.empty{font-size:15px;line-height:1.9}.tabbar{gap:4px;padding:8px 10px calc(8px + env(safe-area-inset-bottom))}.tabbar button{min-height:54px;font-size:12px;gap:5px}.tabbar button.active{border-radius:12px}.modal-card{max-width:calc(100vw - 32px);padding:22px}.modal-btns{gap:10px}
+@media(min-width:700px){#app{max-width:520px;padding-left:24px;padding-right:24px}.tabbar{width:520px}.daily-track{margin-left:-24px;margin-right:-24px;padding-left:24px;padding-right:24px;scroll-padding-left:24px}}
+@media(max-width:360px){#app{padding-left:16px;padding-right:16px}.screen{gap:18px}.screen h2{font-size:24px}.studio-return{font-size:11px}.topbar{gap:6px}.back-btn{width:40px}.collection-top strong{font-size:17px}.collection-art{gap:10px 5px}.collection-mini .drink-illustration{width:54px;height:60px}.collection-mini>span{font-size:12px}.collection-count{font-size:12px}.collection-drink .drink-list-row{grid-template-columns:62px minmax(0,1fr) 8px;gap:9px}.collection-drink .drink-list-art{width:62px;height:72px}.collection-drink .drink-illustration{width:60px;height:68px}.v6-drink.best{grid-template-columns:72px minmax(0,1fr) 8px;gap:10px}.v6-drink.best .v6-result-art{width:72px;height:82px}.v6-drink.best .drink-illustration{width:68px;height:78px}.v6-drink.best .v6-drink-name{font-size:18px}.order-name{font-size:27px!important}.pref-btn{font-size:12px}.tabbar button{font-size:11px}}
+</style>
 </head>
 <body>
-<div id="app"></div>
+<div id="app"><noscript><h1>BAR LOG</h1><p>アプリを使うにはJavaScriptを有効にしてください。</p><nav aria-label="BAR LOGの案内"><p><a href="./about.html">BAR LOGについて</a></p><p><a href="./privacy.html">プライバシーポリシー</a></p><p><a href="./terms.html">利用規約</a></p><p><a href="./drinking.html">飲酒に関する注意</a></p></nav></noscript></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -856,12 +984,6 @@ html{background:#08090b;overflow-x:hidden}body{background:#08090b;font-family:-a
     }},
     { id: "carbonated_fan", label: "炭酸党", desc: "炭酸入りのお酒を5杯記録する", rank: "bronze", check: function (s) {
       return countMatchingDrinks(s, function (d) { return d.carbonated; }) >= 5;
-    }},
-    { id: "night_owl", label: "深夜の一杯", desc: "深夜0時〜4時に記録する", rank: "silver", check: function (s) {
-      return s.some(function (log) {
-        var h = new Date(log.timestamp).getHours();
-        return h >= 0 && h < 4;
-      });
     }}
   ];
   function countMatchingDrinks(s, predicate) {
@@ -920,23 +1042,95 @@ html{background:#08090b;overflow-x:hidden}body{background:#08090b;font-family:-a
     return Math.max(0, 1 - distance / 7) * 0.78 + (category && a[category] === b[category] ? 0.22 : 0);
   }
 
-  function personalScore(d, profile) {
+  /* ------------------------------------------------------------
+     好み・低評価の共通ロジック。
+     今日の一杯・診断結果・MAPの次候補は、すべてここを通して判定する。
+     - 低評価は1件目から効く(好みの成立を待たない)。
+     - 低評価に強く似た一杯は、候補が足りる限り外す。ベース全体は禁止しない。
+     - 好みと低評価がぶつかる場合は、低評価に近い方を優先して下げる。
+       ただし好みの一杯のほうが明らかに近い場合は、下げ幅を半分にする。
+     ------------------------------------------------------------ */
+  var DISLIKE_W = 7;   // 低評価に似ている候補を下げる強さ(回答一致の点数と同じ桁)
+  var AVOID_AT = 0.6;  // この値以上は、候補から外す対象
+
+  function clamp01(x) { return x < 0 ? 0 : x > 1 ? 1 : x; }
+
+  // 好みに近い度合い(0〜1)。好みが成立する(3種類評価・うち2種類が好み)まで0。
+  function likeAffinity(d, profile) {
     if (!profile.ready) return 0;
     var likes = profile.liked.filter(function (item) { return item.drink.genre === d.genre; });
     if (!likes.length) return 0;
+    return Math.max.apply(null, likes.map(function (item) { return drinkSimilarity(d, item.drink); }));
+  }
+
+  // 低評価に似ている度合い(0〜1)。低評価が1件でもあれば初回から効く。
+  function dislikePenalty(d, profile) {
+    var own = profile.rated.find(function (item) { return item.drink.id === d.id; });
+    if (own && own.preference === 3) return 0; // その一杯自身を好みと評価済みなら下げない
     var dislikes = profile.rated.filter(function (item) { return item.preference === 1 && item.drink.genre === d.genre; });
-    var positive = Math.max.apply(null, likes.map(function (item) { return drinkSimilarity(d, item.drink); }));
-    var negative = dislikes.length ? Math.max.apply(null, dislikes.map(function (item) { return drinkSimilarity(d, item.drink); })) : 0;
-    return positive - negative * 0.85;
+    if (!dislikes.length) return 0;
+    var near = Math.max.apply(null, dislikes.map(function (item) { return drinkSimilarity(d, item.drink); }));
+    var penalty = clamp01((near - 0.5) / 0.35);
+    if (penalty > 0) {
+      var likes = profile.liked.filter(function (item) { return item.drink.genre === d.genre && item.drink.id !== d.id; });
+      if (likes.length) {
+        var likedNear = Math.max.apply(null, likes.map(function (item) { return drinkSimilarity(d, item.drink); }));
+        if (likedNear - near >= 0.15) penalty *= 0.5;
+      }
+    }
+    return penalty;
+  }
+
+  // 理由表示や並べ替えに使う総合値(-1〜1)
+  function personalScore(d, profile) {
+    return likeAffinity(d, profile) - dislikePenalty(d, profile);
+  }
+  // 診断の点数に足す補正値。低評価の影響は、回答一致の点数と同じ桁で効かせる。
+  function recAdjust(d, profile) {
+    return likeAffinity(d, profile) * 1.25 - dislikePenalty(d, profile) * DISLIKE_W;
+  }
+  function isAvoided(d, profile) {
+    return dislikePenalty(d, profile) >= AVOID_AT;
   }
 
   function personalReason(d, profile) {
-    if (!profile.ready || personalScore(d, profile) < 0.35) return "";
+    if (!profile.ready || dislikePenalty(d, profile) >= 0.3 || likeAffinity(d, profile) < 0.35) return "";
     var likes = profile.liked.filter(function (item) { return item.drink.genre === d.genre && item.drink.id !== d.id; });
     likes.sort(function (a, b) { return drinkSimilarity(d, b.drink) - drinkSimilarity(d, a.drink); });
-    return likes.length && drinkSimilarity(d, likes[0].drink) >= 0.45
+    return likes.length && drinkSimilarity(d, likes[0].drink) >= 0.6
       ? "好みだった「" + likes[0].drink.name + "」に近い一杯" : "";
   }
+
+  // 診断の回答と実際に一致した点だけを、短く示す(一致が無ければ空)。
+  function answerReason(d, answers) {
+    var parts = [];
+    if (answers.base && d.base === answers.base) parts.push(BASE_LABEL[answers.base] + "ベース");
+    var words = {
+      sweetness: ["辛口寄り", "甘め"],
+      intensity: ["軽め", "しっかり"],
+      mood: ["静かな夜", "賑やかな夜"]
+    };
+    ["sweetness", "intensity", "mood"].forEach(function (key) {
+      var a = answers[key], t = d.tags[key] || 0;
+      if (typeof a === "number" && a !== 0 && a * t > 0) parts.push(words[key][a < 0 ? 0 : 1]);
+    });
+    return parts.length ? "回答と一致：" + parts.slice(0, 3).join("、") : "";
+  }
+
+  // 同じ日・同じ記録状態なら同じ結果になるよう、乱数の代わりに使う固定のゆらぎ(0〜1)
+  function hash01(str) {
+    var h = 2166136261;
+    for (var i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
+    return ((h >>> 0) % 10000) / 10000;
+  }
+  function localDayKey() {
+    var t = new Date();
+    return t.getFullYear() + "-" + (t.getMonth() + 1) + "-" + t.getDate();
+  }
+  function stockSignature() {
+    return stock.map(function (log) { return log.drinkId + ":" + log.preference; }).join(",");
+  }
+  function userKey() { return currentUser ? currentUser.id : "guest"; }
 
   function tasteSummary(profile) {
     function axis(key, low, high) {
@@ -957,6 +1151,10 @@ html{background:#08090b;overflow-x:hidden}body{background:#08090b;font-family:-a
     var pool = DRINKS.filter(function (d) { return d.genre === genre; });
     var catKey = GENRES[genre].categoryKey; // カクテル:base / ビール:style
     var profile = tasteProfile();
+    // 低評価に強く似た一杯は、候補が足りる限り外す(ベース全体は外さない)
+    var usable = pool.filter(function (d) { return !isAvoided(d, profile); });
+    if (usable.length >= 6) pool = usable;
+    var seed = localDayKey() + "|" + stockSignature() + "|" + JSON.stringify(answers);
     var tried = {};
     if (currentUser && !loadError) stock.forEach(function (log) { tried[log.drinkId] = true; });
     var scored = pool.map(function (d) {
@@ -965,12 +1163,12 @@ html{background:#08090b;overflow-x:hidden}body{background:#08090b;font-family:-a
         if (typeof answers[key] === "number") score += answers[key] * (d.tags[key] || 0);
       });
       if (catKey && answers[catKey] && d[catKey] === answers[catKey]) score += 3; // カテゴリ一致ボーナス
-      score += personalScore(d, profile) * 1.25; // 今の回答を優先し、好みは近い候補の順位に反映
-      return { drink: d, score: score, rand: Math.random() };
+      score += recAdjust(d, profile); // 今の回答を優先し、好みと低評価は近い候補の順位に反映
+      return { drink: d, score: score, rand: hash01(seed + "|" + d.id) };
     });
     scored.sort(function (a, b) {
       if (b.score !== a.score) return b.score - a.score;
-      return a.rand - b.rand; // 同点はランダムでタイブレーク
+      return a.rand - b.rand; // 同点は、日付・記録・回答から決まる固定のゆらぎで並べる(開き直しても変わらない)
     });
     var chosen = scored.slice(0, 3);
     var kinds = ["近い一杯", "近い一杯", "近い一杯"];
@@ -994,7 +1192,7 @@ html{background:#08090b;overflow-x:hidden}body{background:#08090b;font-family:-a
       return !chosen.some(function (x) { return x.drink[catKey] === item.drink[catKey]; });
     }) || explorePool[0] || remaining[0];
     if (unexplored) {
-      chosen.push(unexplored); kinds.push(explorePool.indexOf(unexplored) !== -1 ? "未開拓" : "おすすめ");
+      chosen.push(unexplored); kinds.push(explorePool.indexOf(unexplored) !== -1 ? (stock.length ? "未開拓" : "新しい一杯") : "おすすめ");
     }
     var results = chosen.map(function (item) { return item.drink; });
     results.kinds = kinds;
@@ -1064,7 +1262,7 @@ html{background:#08090b;overflow-x:hidden}body{background:#08090b;font-family:-a
 
   // 戻ると本当に失われる入力がある画面かどうか(質問の途中/好み選択の途中)
   function hasUnsavedInput() {
-    return state.screen === "question" || (state.screen === "detail" && state.pendingPref);
+    return state.screen === "question" || (state.screen === "detail" && state.pendingPref) || ((state.screen === "auth" || state.screen === "newPassword") && authInputFilled());
   }
 
   function confirmGoHome() {
@@ -1124,6 +1322,7 @@ html{background:#08090b;overflow-x:hidden}body{background:#08090b;font-family:-a
       render();
     });
     root.appendChild(submitBtn);
+    root.appendChild(authHomeBtn());
   }
 
   function renderAuth(root) {
@@ -1174,6 +1373,7 @@ html{background:#08090b;overflow-x:hidden}body{background:#08090b;font-family:-a
       var backToLogin = el('<button class="ghost-btn">ログイン画面に戻る</button>');
       backToLogin.addEventListener("click", function () { state.authMode = "login"; render(); });
       root.appendChild(backToLogin);
+      root.appendChild(authHomeBtn());
       return;
     }
 
@@ -1186,6 +1386,8 @@ html{background:#08090b;overflow-x:hidden}body{background:#08090b;font-family:-a
     var emailInput = el('<input class="search-input" type="email" inputmode="email" autocapitalize="none" spellcheck="false" placeholder="メールアドレス" autocomplete="email" required aria-label="メールアドレス" />');
     var pwInput = el('<input class="search-input" type="password" placeholder="パスワード(6文字以上)" autocomplete="' + (signingUp ? "new-password" : "current-password") + '" minlength="6" required aria-label="パスワード" style="margin-top:10px;" />');
     form.appendChild(emailInput);
+    emailInput.value = authDraftEmail;
+    emailInput.addEventListener("input", function () { authDraftEmail = emailInput.value; });
     form.appendChild(pwInput);
 
     var errBox = el('<div class="err" style="text-align:center;min-height:14px;margin-top:8px;"></div>');
@@ -1229,7 +1431,9 @@ html{background:#08090b;overflow-x:hidden}body{background:#08090b;font-family:-a
         }
         currentUser = result.data.user;
         await loadStockFromServer();
-        navigate("start");
+        authDraftEmail = "";
+        // 記録しようとしていた画面から来た場合は、その画面へ戻す
+        if (history.length && history[history.length - 1].screen !== "auth") goBack(); else navigate("start");
       } catch (error) {
         errBox.textContent = authMessage(error);
       } finally {
@@ -1268,6 +1472,10 @@ html{background:#08090b;overflow-x:hidden}body{background:#08090b;font-family:-a
       render();
     });
     root.appendChild(toggleBtn);
+    if (signingUp) root.appendChild(el('<div class="guide-note">登録の前に、利用規約とプライバシーポリシーをご確認ください。</div>'));
+    root.appendChild(pageLinks(["terms", "privacy", "drinking"]));
+    var ageLine = el('<div class="age-note"></div>'); ageLine.textContent = AGE_NOTICE; root.appendChild(ageLine);
+    root.appendChild(authHomeBtn());
   }
 
   function topbar(showBack) {
@@ -1281,6 +1489,7 @@ html{background:#08090b;overflow-x:hidden}body{background:#08090b;font-family:-a
     var logo = el('<button class="logo" aria-label="BAR LOG ホーム">BAR LOG</button>');
     logo.addEventListener("click", confirmGoHome);
     wrap.appendChild(logo);
+    wrap.appendChild(el('<a class="studio-return" href="' + OFFICIAL_SITE_URL + '" aria-label="こってり開発部のホームへ戻る"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M14 7l-5 5 5 5M9 12h11" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg><span>こってり開発部へ</span></a>'));
     return wrap;
   }
 
@@ -1371,14 +1580,15 @@ html{background:#08090b;overflow-x:hidden}body{background:#08090b;font-family:-a
   }
 
   // Small inline illustrations use each drink's existing glass type and palette.
+  var illustrationSequence = 0;
   function drinkIllustration(d) {
     var color = /^#[0-9a-fA-F]{3,8}$/.test(d.color) ? d.color : '#a9c7de';
     var to = d.colorTo && /^#[0-9a-fA-F]{3,8}$/.test(d.colorTo) ? d.colorTo : color;
-    var uid = 'g' + String(d.id).replace(/[^a-zA-Z0-9]/g, '');
+    var uid = 'g' + String(d.id).replace(/[^a-zA-Z0-9]/g, '') + '-' + (++illustrationSequence);
     var shape, garnish = '', details = '';
     if (d.glass === 'highball') {
       shape = '<path d="M27 17h42l-5 62q-2 8-16 8t-16-8z" fill="url(#glass)" stroke="#c2d0e3" stroke-width="1.5"/><path d="M30 38h36l-3 39q-1 7-15 7t-15-7z" fill="url(#liquid)" opacity=".85"/><path d="M32 43h31" stroke="#f9fcff" opacity=".42"/><path d="M38 52l10 6-7 11-8-7zM52 59l9 4-6 12-10-4z" fill="#e8f4ff" opacity=".2"/><circle cx="55" cy="49" r="2" fill="#fff" opacity=".36"/><circle cx="42" cy="76" r="1.5" fill="#fff" opacity=".46"/><path d="M35 23l4 51" stroke="#fff" opacity=".32" stroke-width="2"/>';
-      garnish = /(?:ライム|レモン)(?:が映|が浮|を添|の輪切り|のスライス)/.test(d.look) ? '<path d="M64 13l-8 18" stroke="#e6edf5" stroke-width="2"/><circle cx="67" cy="24" r="8" fill="#d4dcaa" stroke="#f1f4d4" stroke-width="2"/><path d="M67 16v16M59 24h16" stroke="#839b6e" opacity=".7"/>' : '';
+      garnish = /(?:ライム|レモン)(?:が映|が浮|を添|の輪切り|のスライス)/.test(d.look) ? '<circle cx="67" cy="24" r="8" fill="#d4dcaa" stroke="#f1f4d4" stroke-width="2"/><path d="M67 16v16M59 24h16" stroke="#839b6e" opacity=".7"/>' : '';
     } else if (d.glass === 'coupe') {
       shape = '<path d="M17 24h62c-3 19-13 30-31 30S20 43 17 24z" fill="url(#glass)" stroke="#c5d1df" stroke-width="1.5"/><path d="M20 33h56c-5 13-14 19-28 19S25 46 20 33z" fill="url(#liquid)" opacity=".9"/><path d="M48 54v29M32 86h32" stroke="#c5d1df" stroke-width="2.5" stroke-linecap="round"/><path d="M24 34c4 10 8 13 12 15" fill="none" stroke="#fff" stroke-width="2" opacity=".3"/>';
       garnish = /チェリー|さくらんぼ/.test(d.look) ? '<circle cx="57" cy="36" r="4" fill="#a84653"/><path d="M57 33c2-6 6-9 10-10" stroke="#8fae78" fill="none" stroke-width="1.5"/>' : (/オリーブ/.test(d.look) ? '<path d="M51 35l17 8" stroke="#d8c3a2" stroke-width="1.4"/><ellipse cx="53" cy="36" rx="5" ry="3" fill="#9cae6e"/>' : '');
@@ -1394,7 +1604,8 @@ html{background:#08090b;overflow-x:hidden}body{background:#08090b;font-family:-a
     }
     // Fine reflections, cold glass and carbonation add depth at the larger sizes.
     if (d.glass === 'highball' || d.glass === 'rock' || d.glass === 'mug') {
-      details = '<path d="M30 18h35" stroke="#fff" stroke-width="1" opacity=".58"/><path d="M36 37l-2 9M63 47l-2 11" stroke="#fff" stroke-width="1.2" opacity=".43" stroke-linecap="round"/><circle cx="28" cy="56" r="1.5" fill="#eef6ff" opacity=".45"/><circle cx="70" cy="65" r="1" fill="#eef6ff" opacity=".38"/>';
+      var rim = d.glass === 'highball' ? 'M30 18h35' : d.glass === 'mug' ? 'M26 32h40' : 'M24 34h48';
+      details = '<path d="' + rim + '" stroke="#fff" stroke-width="1" opacity=".58"/><path d="M36 37l-2 9M63 47l-2 11" stroke="#fff" stroke-width="1.2" opacity=".43" stroke-linecap="round"/><circle cx="28" cy="56" r="1.5" fill="#eef6ff" opacity=".45"/><circle cx="70" cy="65" r="1" fill="#eef6ff" opacity=".38"/>';
     } else if (d.glass === 'coupe') {
       details = '<path d="M17 24h62" stroke="#fff" stroke-width="1.5" opacity=".58"/><path d="M32 31q7 2 12 1" stroke="#fff" opacity=".43" stroke-linecap="round"/><ellipse cx="48" cy="87" rx="19" ry="2" fill="#aab8cc" opacity=".25"/>';
     } else {
@@ -1404,19 +1615,934 @@ html{background:#08090b;overflow-x:hidden}body{background:#08090b;font-family:-a
     return '<svg class="drink-illustration" viewBox="0 0 96 96" fill="none" aria-hidden="true"><defs><linearGradient id="liquid-' + uid + '" x1=".2" y1="0" x2=".8" y2="1"><stop stop-color="' + color + '"/><stop offset="1" stop-color="' + to + '"/></linearGradient><linearGradient id="glass-' + uid + '" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ebf4ff" stop-opacity=".13"/><stop offset=".55" stop-color="#ffffff" stop-opacity=".03"/><stop offset="1" stop-color="#d8e8ff" stop-opacity=".2"/></linearGradient></defs>' + (shape + garnish + details).replace(/url\(#glass\)/g,'url(#glass-' + uid + ')').replace(/url\(#liquid\)/g,'url(#liquid-' + uid + ')') + '</svg>';
   }
 
-  // Stable within the day; saved ratings favor similar drinks not yet recorded.
-  function todayDrink() {
-    var day = new Date();
-    var key = day.getFullYear() * 372 + (day.getMonth() + 1) * 31 + day.getDate();
-    var profile = tasteProfile();
-    if (!profile.ready) return DRINKS[key % DRINKS.length];
-    var visited = {};
-    profile.rated.forEach(function (item) { visited[item.drink.id] = true; });
-    var candidates = DRINKS.filter(function (d) { return !visited[d.id]; });
-    if (!candidates.length) candidates = DRINKS;
-    candidates.sort(function (a, b) { return personalScore(b, profile) - personalScore(a, profile) || a.id.localeCompare(b.id); });
-    var relevant = candidates.filter(function (d) { return personalScore(d, profile) >= 0.35; });
-    return relevant.length ? relevant[key % Math.min(5, relevant.length)] : candidates[key % candidates.length];
+  /* ============================================================
+     今日の一杯(三択)
+     1枠: 本命 / 2枠: 少し違う方向 / 3枠: 無理のない未開拓
+     同じ日・同じ記録状態なら、開き直しても同じ3杯。記録が増えたら再計算する。
+     「別の一杯を見る」は、その枠だけを差し替えるその場のパス。
+     苦手などの恒久データは作らない(低評価は、飲んだ後の評価だけが記録される)。
+     ============================================================ */
+  var dailyIndex = 0;   // 三択のどのカードを見ていたか(ホームに戻ったとき用)
+  var dailyMem = null;  // 三択の状態(sessionStorageにも保存)
+
+  function drinkById(id) {
+    return DRINKS.find(function (d) { return d.id === id; }) || null;
+  }
+
+  function dailyCtx() {
+    var profile = tasteProfile(), tried = {};
+    stock.forEach(function (log) { tried[log.drinkId] = true; });
+    return {
+      profile: profile,
+      ready: profile.ready,
+      tried: tried,
+      hasRecords: stock.length > 0,
+      seed: userKey() + "|" + localDayKey() + "|" + stockSignature()
+    };
+  }
+
+  // 一般的な入りやすさ: 強すぎず、甘さが極端でないほど高い(0〜3程度)
+  function approach(d) {
+    var t = d.tags;
+    return 3 - Math.max(0, t.intensity || 0) - 0.5 * Math.abs(t.sweetness || 0) - (d.base === "other" ? 0.3 : 0);
+  }
+
+  // 文章の理由で使う、味の特徴。中庸な軸は言わない。言葉はチップ(strengthLabel / sweetLabel)と同じ。
+  function tasteParts(d) {
+    var parts = [];
+    if ((d.tags.sweetness || 0) !== 0) parts.push(sweetLabel(d));
+    if ((d.tags.intensity || 0) !== 0) parts.push(strengthLabel(d));
+    return parts;
+  }
+  function tasteLead(d) {
+    var s = (d.tags.sweetness || 0) !== 0 ? sweetLabel(d) : "";
+    var i = (d.tags.intensity || 0) !== 0 ? (strengthLabel(d) === "しっかり" ? "しっかりした味わい" : "軽め") : "";
+    return s && i ? s + "で" + i : s || i || "クセの少ない味わい";
+  }
+  // 1枠目との違いを短い言葉で。違いが無ければ空。
+  function diffWord(d, a) {
+    var dS = (d.tags.sweetness || 0) - (a.tags.sweetness || 0), dI = (d.tags.intensity || 0) - (a.tags.intensity || 0);
+    if (Math.abs(dS) >= Math.abs(dI) && dS !== 0) return dS < 0 ? "より辛口寄り" : "より甘め";
+    if (dI !== 0) return dI < 0 ? "より軽め" : "より強め";
+    return "";
+  }
+
+  function slotScore(i, d, picks, ctx) {
+    var p = ctx.profile;
+    var pen = dislikePenalty(d, p), aff = likeAffinity(d, p);
+    var jitter = hash01(ctx.seed + "|" + i + "|" + d.id);
+    var isTried = !!ctx.tried[d.id];
+    var s;
+    if (i === 0) {
+      s = ctx.ready ? aff * 6 + approach(d) * 0.6 : approach(d) * 1.5;
+      if (isTried && ctx.hasRecords) s -= 2;
+      s += jitter * 0.8;
+    } else if (i === 1) {
+      var a = picks[0];
+      var contrast = a
+        ? Math.abs((d.tags.sweetness || 0) - (a.tags.sweetness || 0)) +
+          Math.abs((d.tags.intensity || 0) - (a.tags.intensity || 0)) +
+          0.4 * Math.abs((d.tags.mood || 0) - (a.tags.mood || 0))
+        : 0;
+      // 「少し違う」=違いが大きすぎない(目安3前後)ことを優先する
+      s = 3 - Math.abs(contrast - 3) + approach(d) * 0.8 + (ctx.ready ? aff * 2 : 0) + (a && d.base !== a.base ? 1 : 0);
+      if (isTried && ctx.hasRecords) s -= 2;
+      s += jitter * 0.8;
+    } else {
+      var others = [picks[0], picks[1]].filter(Boolean);
+      var newBase = others.every(function (x) { return x.base !== d.base; });
+      s = approach(d) + (ctx.ready ? aff * 3 : 0) + (newBase ? 1.5 : 0);
+      if (!isTried) s += 4;
+      s += jitter * 0.8;
+    }
+    return s - pen * DISLIKE_W;
+  }
+
+  function bestForSlot(i, picks, excluded, ctx, relax) {
+    var best = null, bestScore = -Infinity;
+    DRINKS.forEach(function (d) {
+      if (excluded[d.id]) return;
+      if (!relax && isAvoided(d, ctx.profile)) return;
+      var sc = slotScore(i, d, picks, ctx);
+      if (sc > bestScore || (sc === bestScore && best && d.id < best.id)) { best = d; bestScore = sc; }
+    });
+    return best;
+  }
+
+  function buildDailyPicks() {
+    var ctx = dailyCtx(), picks = [], ids = [], excluded = {};
+    for (var i = 0; i < 3; i++) {
+      var best = bestForSlot(i, picks, excluded, ctx, false) || bestForSlot(i, picks, excluded, ctx, true);
+      picks.push(best); ids.push(best.id); excluded[best.id] = true;
+    }
+    return ids;
+  }
+
+  function dailyStoreKey() { return "barlog:daily:" + userKey(); }
+  function saveDaily(s) {
+    dailyMem = s;
+    try { sessionStorage.setItem(dailyStoreKey(), JSON.stringify(s)); } catch (e) { /* private browsing */ }
+  }
+  function loadDaily() {
+    var day = localDayKey(), sig = stockSignature(), user = userKey();
+    var s = dailyMem;
+    if (!s) {
+      try { s = JSON.parse(sessionStorage.getItem(dailyStoreKey()) || "null"); } catch (e) { s = null; }
+    }
+    var valid = s && s.user === user && s.day === day && s.sig === sig && Array.isArray(s.slots) && s.slots.length === 3 &&
+      s.slots.every(function (id) { return !!drinkById(id); });
+    if (valid) { dailyMem = s; return s; }
+    s = { user: user, day: day, sig: sig, slots: buildDailyPicks(), shown: [], exhausted: [false, false, false] };
+    s.shown = s.slots.slice();
+    dailyIndex = 0;
+    saveDaily(s);
+    return s;
+  }
+
+  // 1枠だけ差し替える。表示中の他の2杯と、今日すでに出した候補は繰り返さない。
+  function swapDaily(i) {
+    var s = loadDaily(), ctx = dailyCtx();
+    var picks = s.slots.map(drinkById);
+    var excluded = {};
+    s.shown.forEach(function (id) { excluded[id] = true; });
+    s.slots.forEach(function (id) { excluded[id] = true; });
+    var cand = bestForSlot(i, picks, excluded, ctx, false);
+    if (!cand) { s.exhausted[i] = true; saveDaily(s); return null; }
+    s.slots[i] = cand.id;
+    s.shown.push(cand.id);
+    saveDaily(s);
+    return cand;
+  }
+
+  // 3杯まとめて選び直す。新しい3杯を先に全部そろえ、そろったときだけ反映する。
+  // 1枚の差し替えと同じ提示履歴(shown)を使い、直前の3杯・今日出した候補は繰り返さない。
+  // 低評価の回避は緩めない。そろわなければ、いまの3杯を変えずに null を返す。
+  function rerollDaily() {
+    var s = loadDaily(), ctx = dailyCtx();
+    var excluded = {}, picks = [], ids = [];
+    s.shown.forEach(function (id) { excluded[id] = true; });
+    s.slots.forEach(function (id) { excluded[id] = true; });
+    for (var i = 0; i < 3; i++) {
+      var best = bestForSlot(i, picks, excluded, ctx, false);
+      if (!best) { s.rerollOut = true; saveDaily(s); return null; }
+      picks.push(best); ids.push(best.id); excluded[best.id] = true;
+    }
+    s.slots = ids;
+    s.shown = s.shown.concat(ids);
+    s.exhausted = [false, false, false];
+    s.rerollOut = false;
+    dailyIndex = 0;
+    saveDaily(s);
+    return ids;
+  }
+
+  function dailyLabel(i, d, ctx) {
+    if (i === 0) return ctx.ready && likeAffinity(d, ctx.profile) >= 0.6 ? "あなたに近い一杯" : "入りやすい一杯";
+    if (i === 1) return "気分を変える一杯";
+    return ctx.hasRecords ? (ctx.tried[d.id] ? "もう一度の一杯" : "はじめての一杯") : "試してみる一杯";
+  }
+
+  // 理由は、実際に使った根拠だけを書く。
+  function dailyReason(i, d, picks, ctx) {
+    if (i === 0) {
+      if (ctx.ready && likeAffinity(d, ctx.profile) >= 0.6) return personalReason(d, ctx.profile) || "好みの傾向に近い味わいです";
+      return "迷ったときに頼みやすい、" + tasteLead(d) + "の一杯";
+    }
+    if (i === 1) {
+      var a = picks[0];
+      if (!a) return "";
+      var word = diffWord(d, a);
+      if (word) return "「" + a.name + "」" + word + "。気分を変えたい日に";
+      return (d.base !== a.base && baseText(d) ? baseText(d) + "で、" : "") + "気分を変えられる一杯";
+    }
+    if (ctx.tried[d.id]) return "記録にある一杯。もう一度味わいたい日に";
+    return (ctx.hasRecords ? "まだ記録にない一杯。" : "") + (baseText(d) ? baseText(d) + "の、" : "") + tasteLead(d) + "の一杯";
+  }
+
+  var SWAP_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.3-4.6L4 8"/><path d="M4 4v4h4"/><path d="M4 13a8 8 0 0 0 14.3 4.6L20 16"/><path d="M20 20v-4h-4"/></svg>';
+
+  var CARD_SWAP_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h14"/><path d="M14 4l4 4-4 4"/><path d="M20 16H6"/><path d="M10 12l-4 4 4 4"/></svg>';
+
+  function renderDailyPicks(root) {
+    var s = loadDaily(), ctx = dailyCtx();
+    var sec = el(
+      '<section class="daily" aria-labelledby="daily-h">' +
+      '<div class="daily-head"><h2 class="daily-title" id="daily-h">今日の一杯</h2><div class="daily-head-right"><span class="daily-count" aria-hidden="true">1 / 3</span>' +
+      '<button type="button" class="daily-reroll" aria-label="今日の一杯を3杯まとめて選び直す">' + SWAP_ICON + '<span>選び直す</span></button></div></div>' +
+      '<p class="daily-sub">飲む日の参考に。飲まない日があっても大丈夫です。</p>' +
+      '<div class="daily-track" role="group" aria-roledescription="carousel" aria-label="今日の一杯の候補"></div>' +
+      '<div class="daily-nav"><button type="button" class="daily-step" data-dir="-1" aria-label="前の候補">&lsaquo;</button>' +
+      '<div class="daily-dots" aria-hidden="true"><span class="daily-dot"></span><span class="daily-dot"></span><span class="daily-dot"></span></div>' +
+      '<button type="button" class="daily-step" data-dir="1" aria-label="次の候補">&rsaquo;</button></div>' +
+      '<p class="daily-note" role="status" aria-live="polite"></p>' +
+      '</section>'
+    );
+    var track = sec.querySelector('.daily-track');
+    var count = sec.querySelector('.daily-count');
+    var dots = sec.querySelectorAll('.daily-dot');
+    var steps = sec.querySelectorAll('.daily-step');
+    var note = sec.querySelector('.daily-note');
+    var rerollBtn = sec.querySelector('.daily-reroll');
+    var OUT_MSG = '新しい3杯の候補は出し切りました。気分で診断するか、検索から探せます。';
+    if (s.rerollOut) rerollBtn.setAttribute('aria-disabled', 'true');
+
+    function picksNow() { return s.slots.map(drinkById); }
+
+    function makeCard(i) {
+      var picks = picksNow(), d = picks[i];
+      var label = dailyLabel(i, d, ctx);
+      var chips = chipsHtml(d, "", false);
+      var card = el(
+        '<article class="daily-card" role="group" aria-roledescription="slide" aria-label="' + (i + 1) + ' / 3 ' + label + '、' + d.name + '">' +
+        '<button type="button" class="daily-open" aria-label="' + d.name + 'の詳細を見る">' +
+        '<span class="daily-art">' + drinkIllustration(d) + '</span>' +
+        '<span class="daily-body"><span class="daily-slot">' + label + '</span>' +
+        '<span class="daily-name">' + d.name + '</span>' +
+        chips +
+        '<span class="daily-look">' + d.look + '</span>' +
+        '<span class="daily-reason">' + dailyReason(i, d, picks, ctx) + '</span></span>' +
+        '</button>' +
+        '<button type="button" class="daily-swap"' + (s.exhausted[i] ? ' disabled' : '') + '>' + CARD_SWAP_ICON + '<span>' + (s.exhausted[i] ? '候補を出し切りました' : 'この一杯だけ替える') + '</span></button>' +
+        '</article>'
+      );
+      card.querySelector('.daily-open').addEventListener('click', function () {
+        navigate('detail', { detailId: d.id, pendingPref: null });
+      });
+      card.querySelector('.daily-swap').addEventListener('click', function () { doSwap(i); });
+      return card;
+    }
+
+    function replaceCard(i, focusSwap) {
+      var old = track.children[i], fresh = makeCard(i);
+      track.replaceChild(fresh, old);
+      if (focusSwap) { try { fresh.querySelector('.daily-swap').focus({ preventScroll: true }); } catch (e) {} }
+    }
+
+    function doSwap(i) {
+      var cand = swapDaily(i);
+      if (!cand) {
+        replaceCard(i, false);
+        note.textContent = '今日の候補は出し切りました。気分で診断するか、検索から探せます。';
+        return;
+      }
+      replaceCard(i, true);
+      if (i === 0) replaceCard(1, false); // 2枠の理由は1枠との違いを書くため、文だけ更新する
+      note.textContent = '「' + cand.name + '」に差し替えました。';
+    }
+
+    var rerollLocked = false;
+    rerollBtn.addEventListener('click', function () {
+      if (rerollLocked) return;               // 連打で処理が重ならないようにする
+      if (rerollBtn.getAttribute('aria-disabled') === 'true') { note.textContent = OUT_MSG; return; }
+      rerollLocked = true;
+      var ids = rerollDaily();
+      if (!ids) {
+        rerollBtn.setAttribute('aria-disabled', 'true');
+        note.textContent = OUT_MSG;
+        rerollLocked = false;
+        return;
+      }
+      s = loadDaily();
+      while (track.firstChild) track.removeChild(track.firstChild);
+      for (var k = 0; k < 3; k++) track.appendChild(makeCard(k));
+      track.scrollLeft = 0;
+      sync();
+      note.textContent = '3杯を選び直しました。1枚目は「' + drinkById(ids[0]).name + '」です。';
+      setTimeout(function () { rerollLocked = false; }, 350);
+    });
+
+    for (var i = 0; i < 3; i++) track.appendChild(makeCard(i));
+
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    function stepWidth() {
+      var c = track.children;
+      return c.length > 1 ? c[1].offsetLeft - c[0].offsetLeft : (track.clientWidth || 1);
+    }
+    function currentIndex() {
+      var max = track.scrollWidth - track.clientWidth;
+      if (max > 0 && track.scrollLeft >= max - 2) return 2;
+      return Math.max(0, Math.min(2, Math.round(track.scrollLeft / stepWidth())));
+    }
+    function sync() {
+      var idx = currentIndex();
+      dailyIndex = idx;
+      count.textContent = (idx + 1) + ' / 3';
+      for (var k = 0; k < dots.length; k++) dots[k].className = 'daily-dot' + (k === idx ? ' active' : '');
+      steps[0].setAttribute('aria-disabled', idx === 0 ? 'true' : 'false');
+      steps[1].setAttribute('aria-disabled', idx === 2 ? 'true' : 'false');
+    }
+    function goTo(n) {
+      n = Math.max(0, Math.min(2, n));
+      var pad = parseInt(getComputedStyle(track).paddingLeft, 10) || 0;
+      track.scrollTo({ left: Math.max(0, track.children[n].offsetLeft - pad), behavior: reduce ? 'auto' : 'smooth' });
+    }
+    Array.prototype.forEach.call(steps, function (b) {
+      b.addEventListener('click', function () {
+        if (b.getAttribute('aria-disabled') === 'true') return;
+        goTo(currentIndex() + parseInt(b.getAttribute('data-dir'), 10));
+      });
+    });
+    var ticking = false;
+    track.addEventListener('scroll', function () {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(function () { ticking = false; sync(); });
+    }, { passive: true });
+
+    root.appendChild(sec);
+    // 描画後に、前回見ていたカードの位置へ戻す
+    requestAnimationFrame(function () {
+      var pad = parseInt(getComputedStyle(track).paddingLeft, 10) || 0;
+      if (dailyIndex > 0 && track.children[dailyIndex]) track.scrollLeft = Math.max(0, track.children[dailyIndex].offsetLeft - pad);
+      sync();
+    });
+  }
+
+  // 互換用: ホームの先頭候補
+  function todayDrink() { return drinkById(loadDaily().slots[0]); }
+
+  /* ============================================================
+     注文用表示・強さ・代案・飲む前後
+     ============================================================ */
+  // 英語表記。確かなものだけ載せる。無いものは表示しない(推測で作らない)。
+  var EN_NAMES = {
+    gin_tonic: "Gin and Tonic", gin_rickey: "Gin Rickey", negroni: "Negroni", martini: "Martini",
+    whiskey_sour: "Whiskey Sour", old_fashioned: "Old Fashioned", highball: "Whisky Highball",
+    mojito: "Mojito", daiquiri: "Daiquiri", dark_and_stormy: "Dark 'n' Stormy", moscow_mule: "Moscow Mule",
+    cosmopolitan: "Cosmopolitan", espresso_martini: "Espresso Martini", margarita: "Margarita",
+    tequila_sunrise: "Tequila Sunrise", paloma: "Paloma", manhattan: "Manhattan", gimlet: "Gimlet",
+    aviation: "Aviation", bees_knees: "Bee's Knees", boulevardier: "Boulevardier", sazerac: "Sazerac",
+    mai_tai: "Mai Tai", pina_colada: "Piña Colada", bloody_mary: "Bloody Mary", screwdriver: "Screwdriver",
+    french_75: "French 75", aperol_spritz: "Aperol Spritz", sidecar: "Sidecar", matador: "Matador",
+    singapore_sling: "Singapore Sling", tom_collins: "Tom Collins", cuba_libre: "Cuba Libre",
+    white_russian: "White Russian", mimosa: "Mimosa", long_island_iced_tea: "Long Island Iced Tea",
+    fuzzy_navel: "Fuzzy Navel", salty_dog: "Salty Dog"
+  };
+
+  // 強さ・甘さは、ホーム・診断結果・詳細・検索で同じ言葉を使う。
+  // tags.intensity は「飲みごたえ(軽やか〜コク・重厚)」の目安であり、アルコール度数ではない。
+  function strengthLabel(d) { var i = d.tags.intensity || 0; return i < 0 ? "軽め" : i > 0 ? "しっかり" : "中間"; }
+  function sweetLabel(d) { var s = d.tags.sweetness || 0; return s < 0 ? "辛口寄り" : s > 0 ? "甘め" : "ほどよい甘さ"; }
+  function baseText(d) { return d.base && d.base !== "other" && BASE_LABEL[d.base] ? BASE_LABEL[d.base] + "ベース" : ""; }
+  function drinkChipList(d, full) {
+    var c = [];
+    if (baseText(d)) c.push(baseText(d));
+    c.push(strengthLabel(d), sweetLabel(d));
+    if (full && d.carbonated) c.push("炭酸あり");
+    return c;
+  }
+  function chipsHtml(d, size, full) {
+    return '<span class="tchips ' + (size || "") + '">' + drinkChipList(d, full).map(function (c) { return '<span class="tchip">' + c + '</span>'; }).join("") + '</span>';
+  }
+
+  /* ---- 「この店になかった」: 代わりに頼めそうな一杯を根拠つきで出す ----
+     店側の在庫・メニューの都合なので、飲んだ記録・好み・MAPには一切使わない。
+     除外の記憶はこの画面を開いている間だけ(ホームに戻ると解除)。保存しない。 */
+  var missedHere = [];
+  function citrusIn(d) { return /レモン|ライム|オレンジ|グレープフルーツ/.test(d.recipe); }
+  function altCandidates(d, limit) {
+    var profile = tasteProfile(), out = [];
+    DRINKS.forEach(function (x) {
+      if (x.id === d.id || missedHere.indexOf(x.id) !== -1 || isAvoided(x, profile)) return;
+      var sameBase = x.base === d.base && d.base !== "other";
+      var close = Math.abs((x.tags.sweetness || 0) - (d.tags.sweetness || 0)) <= 1 && Math.abs((x.tags.intensity || 0) - (d.tags.intensity || 0)) <= 1;
+      var citrus = citrusIn(x) && citrusIn(d);
+      if (!sameBase && !close && !citrus) return; // 根拠が無いものは出さない
+      var reasons = [];
+      if (sameBase) reasons.push(baseText(d) + "で同じ");
+      if (close) reasons.push("甘さと強さが近い");
+      if (citrus) reasons.push("どちらも柑橘を使うレシピ");
+      if (x.carbonated && d.carbonated) reasons.push("どちらも炭酸あり");
+      var score = -Math.sqrt(tagDistance(x, d)) + (sameBase ? 1.5 : 0) + (close ? 1 : 0) + (citrus ? 0.4 : 0) + (x.carbonated === d.carbonated ? 0.3 : 0);
+      out.push({ drink: x, reasons: reasons.slice(0, 2), score: score });
+    });
+    out.sort(function (a, b) { return (b.score - a.score) || (a.drink.id < b.drink.id ? -1 : 1); });
+    return out.slice(0, limit || 3);
+  }
+
+  function renderAltPanel(d, root) {
+    var sec = el('<section class="alt-panel" aria-labelledby="alt-h" tabindex="-1"><h3 id="alt-h">この店になかった場合の代案</h3><p class="alt-note">店によって、これも提供されない場合があります。</p><div class="drink-list"></div></section>');
+    var list = sec.querySelector('.drink-list');
+    var picks = altCandidates(d, 3);
+    picks.forEach(function (p) { list.appendChild(drinkListRow(p.drink, null, p.reasons.join("、"))); });
+    if (picks.length < 2) {
+      sec.appendChild(el('<p class="alt-note">近い一杯があまり見つかりませんでした。診断か検索で探せます。</p>'));
+      var row = el('<div class="order-actions"><button type="button" class="order-btn primary alt-diag">気分で診断する</button><button type="button" class="order-btn alt-search">カクテルを探す</button></div>');
+      row.querySelector('.alt-diag').addEventListener('click', function () { navigate('question', { genre: 'cocktail', answers: {}, qIndex: 0 }); });
+      row.querySelector('.alt-search').addEventListener('click', function () { navigate('registry', { searchText: '' }); });
+      sec.appendChild(row);
+    }
+    if (missedHere.length) {
+      var foot = el('<div class="alt-foot"><span>「なかった」として除外中：' + missedHere.length + '件</span><button type="button" class="alt-reset">解除</button></div>');
+      foot.querySelector('.alt-reset').addEventListener('click', function () { missedHere = []; state.altFor = null; render(); });
+      sec.appendChild(foot);
+    }
+    root.appendChild(sec);
+  }
+
+  function showAlternatives(d) {
+    if (missedHere.indexOf(d.id) === -1) missedHere.push(d.id);
+    state.altFor = d.id;
+    render();
+    var panel = document.querySelector('.alt-panel');
+    if (panel) {
+      var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      panel.scrollIntoView({ block: 'start', behavior: reduce ? 'auto' : 'smooth' });
+      try { panel.focus({ preventScroll: true }); } catch (e) {}
+    }
+  }
+
+  // ホームの「診断結果」用: 1位との違いを短い言葉で
+  function diffFromTop(d, top) {
+    var word = diffWord(d, top);
+    if (word) return "「" + top.name + "」" + word;
+    if (d.base !== top.base && baseText(d)) return "「" + top.name + "」とはベースが違う";
+    return "";
+  }
+
+  /* ============================================================
+     20歳以上向けの案内・年齢確認、使い方、各ポリシー、問い合わせ
+     ============================================================ */
+  var OFFICIAL_SITE_URL = "https://kotteri-apps.com/";
+  var CONTACT_URL = "https://www.instagram.com/kotteri_kaihatsubu/";
+  var POLICY_UPDATED = "2026年10月1日";
+  var AGE_NOTICE = "BAR LOGは、20歳以上の方を対象としたカクテルの提案・記録アプリです。20歳未満の飲酒は法律で禁止されています。飲酒を伴う運転はしないでください。";
+
+  // 年齢の自己申告は端末にだけ保存する(生年月日や身分証は集めない)。本人の年齢を証明する仕組みではない。
+  var AGE_KEY = "barlog:age20";
+  var ageOk = false, ageDenied = false;
+  try { ageOk = localStorage.getItem(AGE_KEY) === "yes"; } catch (e) { ageOk = false; }
+  // 年齢確認の前でも読めるページ(ポリシー・問い合わせ・パスワード再設定の完了)
+  var PRE_GATE_SCREENS = ["privacy", "terms", "drinking", "contact", "newPassword"];
+
+  function confirmAge() {
+    ageOk = true; ageDenied = false;
+    try { localStorage.setItem(AGE_KEY, "yes"); } catch (e) { /* private browsing */ }
+    render();
+  }
+
+  function pageLinks(names) {
+    var map = {
+      howto: ["使い方", "howto"], drinking: ["飲酒に関する注意", "drinking"], contact: ["問い合わせ", "contact"],
+      terms: ["利用規約", "terms"], privacy: ["プライバシーポリシー", "privacy"]
+    };
+    var wrap = el('<div class="foot-links"></div>');
+    names.forEach(function (n) {
+      if (n === "about") {
+        wrap.appendChild(el('<a class="foot-link" href="./about.html">BAR LOGについて</a>'));
+        return;
+      }
+      if (n === "site") {
+        wrap.appendChild(el('<a class="foot-link" href="' + OFFICIAL_SITE_URL + '">こってり開発部へ戻る</a>'));
+        return;
+      }
+      var b = el('<button type="button" class="foot-link">' + map[n][0] + '</button>');
+      b.addEventListener("click", function () { navigate(map[n][1]); });
+      wrap.appendChild(b);
+    });
+    return wrap;
+  }
+
+  function renderAgeGate(root) {
+    if (ageDenied) {
+      root.appendChild(el('<div class="age-gate"><h2>BAR LOGは20歳以上の方向けです</h2><p class="guide-lead">20歳未満の方は、お酒の情報や飲んだ記録をご利用いただけません。</p></div>'));
+      root.appendChild(el('<a class="order-btn primary age-site" href="' + OFFICIAL_SITE_URL + '">こってり開発部へ戻る</a>'));
+      root.appendChild(pageLinks(["privacy", "terms", "contact"]));
+      return;
+    }
+    root.appendChild(el('<div class="age-gate"><div class="age-logo">BAR LOG</div><h2>20歳以上ですか？</h2><p class="guide-lead">BAR LOGは、20歳以上の方を対象に、お酒の情報と飲んだ記録を提供します。20歳未満の飲酒は法律で禁止されています。</p></div>'));
+    var yes = el('<button type="button" class="primary-btn age-yes">20歳以上です</button>');
+    yes.addEventListener("click", confirmAge);
+    var no = el('<button type="button" class="order-btn age-no">20歳未満です</button>');
+    no.addEventListener("click", function () { ageDenied = true; render(); });
+    root.appendChild(yes);
+    root.appendChild(no);
+    root.appendChild(el('<div class="guide-note">この確認は自己申告です。生年月日や身分証は集めず、回答はこの端末にだけ保存します。</div>'));
+    root.appendChild(pageLinks(["about", "privacy", "terms", "drinking", "contact"]));
+  }
+
+
+  // AdSense準備。承認・本番設定・必要な同意管理の整備後にのみ有効化する。
+  // 審査はheadのメタタグで接続する。無効時は広告スクリプトも広告枠も生成しない。
+  // 自動広告は利用せず、この2画面に手動広告だけを配置する。
+  var ADSENSE_CONFIG = {
+    enabled: false,
+    publisherId: "ca-pub-4960959858706803",
+    slots: { detail: null, guideDetail: null }
+  };
+  var currentAd = null;
+  var adScriptPromise = null;
+  var adObserver = null;
+  function loadAdScript() {
+    if (adScriptPromise) return adScriptPromise;
+    adScriptPromise = new Promise(function (resolve, reject) {
+      var script = document.createElement("script");
+      script.async = true;
+      script.crossOrigin = "anonymous";
+      script.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=" + encodeURIComponent(ADSENSE_CONFIG.publisherId);
+      script.onload = resolve;
+      script.onerror = function () { reject(new Error("Ad script unavailable")); };
+      document.head.appendChild(script);
+    });
+    return adScriptPromise;
+  }
+  function appendScreenAd(root) {
+    var slot = ADSENSE_CONFIG.slots[state.screen];
+    if (!ADSENSE_CONFIG.enabled || !ageOk || !/^ca-pub-\d{16}$/.test(ADSENSE_CONFIG.publisherId) || !/^\d+$/.test(String(slot || ""))) {
+      if (adObserver) { adObserver.disconnect(); adObserver = null; }
+      currentAd = null;
+      return;
+    }
+    var key = state.screen + ":" + (state.screen === "detail" ? state.detailId : state.guideId);
+    // 評価選択等の同じ画面の再描画では同じ広告を移動し、再リクエストしない。
+    if (currentAd && currentAd.key === key) { root.appendChild(currentAd.box); return; }
+    if (adObserver) { adObserver.disconnect(); adObserver = null; }
+    var box = el('<aside class="adsense-section" aria-label="広告"><div class="adsense-tag">広告</div><ins class="adsbygoogle" style="display:block"></ins></aside>');
+    var ins = box.querySelector("ins");
+    ins.setAttribute("data-ad-client", ADSENSE_CONFIG.publisherId);
+    ins.setAttribute("data-ad-slot", slot);
+    ins.setAttribute("data-ad-format", "auto");
+    ins.setAttribute("data-full-width-responsive", "true");
+    var ad = currentAd = { key: key, box: box, requested: false };
+    root.appendChild(box);
+    function activate() {
+      if (ad.requested || !box.isConnected || currentAd !== ad) return;
+      ad.requested = true;
+      loadAdScript().then(function () {
+        if (!box.isConnected || currentAd !== ad) return;
+        try { (window.adsbygoogle = window.adsbygoogle || []).push({}); }
+        catch (e) { box.hidden = true; }
+      }).catch(function () { box.hidden = true; });
+    }
+    if ("IntersectionObserver" in window) {
+      adObserver = new IntersectionObserver(function (entries) {
+        if (entries.some(function (entry) { return entry.isIntersecting; })) {
+          adObserver.disconnect(); adObserver = null; activate();
+        }
+      }, { rootMargin: "100px" });
+      adObserver.observe(box);
+    } else { activate(); }
+  }
+
+  // 共通のページ描画。sections は { title, paras } または { title, items }
+  function renderInfoPage(root, title, lead, sections, showUpdated, links) {
+    root.appendChild(topbar(true));
+    root.appendChild(el('<div class="map-heading"><h2>' + title + '</h2>' + (lead ? '<p>' + lead + '</p>' : '') + '</div>'));
+    sections.forEach(function (sec) {
+      var block = el('<section class="guide-block"><h3>' + sec.title + '</h3></section>');
+      (sec.paras || []).forEach(function (t) { block.appendChild(el('<p class="guide-para">' + t + '</p>')); });
+      if (sec.items) {
+        var ul = el('<ul></ul>');
+        sec.items.forEach(function (t) { ul.appendChild(el('<li>' + t + '</li>')); });
+        block.appendChild(ul);
+      }
+      root.appendChild(block);
+    });
+    if (showUpdated) root.appendChild(el('<div class="guide-note">更新日：' + POLICY_UPDATED + '</div>'));
+    if (links) root.appendChild(pageLinks(links));
+  }
+
+  function renderDrinking(root) {
+    renderInfoPage(root, "飲酒に関する注意", "", [
+      { title: "このサービスについて", paras: ["BAR LOGは、お酒の情報を知り、飲んだ体験を記録するためのサービスです。飲酒や飲酒量を増やすことを勧めるものではありません。"] },
+      { title: "守っていただきたいこと", paras: ["20歳未満の飲酒は法律で禁止されています。飲酒を伴う運転はしないでください。飲めない方や飲みたくない方に飲酒を勧めたり、強要したりしないでください。"] },
+      { title: "体調やお薬について", paras: ["妊娠中・授乳中は飲酒を控えてください。服薬中や治療中の方は、飲酒してよいか医師・薬剤師に確認してください。体調が悪いときは無理に飲まず、自分の体調とペースを優先してください。"] },
+      { title: "掲載内容について", paras: ["掲載する味、見た目、材料、アルコール度数の目安は、レシピや提供店によって異なります。「飲みごたえ」はアルコール度数や安全に飲める量を示すものではありません。注文時には店舗にご確認ください。"] }
+    ], false, ["privacy", "terms", "contact"]);
+  }
+
+  function renderContact(root) {
+    root.appendChild(topbar(true));
+    root.appendChild(el('<div class="map-heading"><h2>問い合わせ</h2><p>ご感想やお困りごとは、こってり開発部までご連絡ください。</p></div>'));
+    root.appendChild(el('<p class="guide-para">パスワードや認証コードは、書かないでください。ログインできない場合は、先に「パスワードをお忘れですか？」や確認メールの再送をお試しください。</p>'));
+    root.appendChild(el('<a class="order-btn primary age-site" href="' + CONTACT_URL + '" target="_blank" rel="noopener noreferrer">Instagramで問い合わせる</a>'));
+    root.appendChild(el('<a class="order-btn age-site" href="' + OFFICIAL_SITE_URL + '">こってり開発部へ戻る</a>'));
+    root.appendChild(pageLinks(["privacy", "terms", "drinking"]));
+  }
+
+  function renderPrivacy(root) {
+    renderInfoPage(root, "プライバシーポリシー", "BAR LOGでの情報の扱いをまとめています。", [
+      { title: "運営", paras: ["こってり開発部(個人による開発・運営)"] },
+      { title: "取得する情報", items: [
+        "登録メールアドレスと、ログインに必要な情報",
+        "飲んだ記録(ドリンクの種類、好みの評価、記録した日時)",
+        "この端末に保存するもの：「飲みたい」に保存した一杯、20歳以上である旨の自己申告、同じ日の「今日の一杯」の候補"
+      ]},
+      { title: "利用目的", items: ["ログイン認証", "飲んだ記録の保存と表示", "好みの反映と、おすすめの表示", "お問い合わせへの対応"] },
+      { title: "保存場所", paras: [
+        "メールアドレスと飲んだ記録は、ログインしたアカウントに紐づけて、クラウド(Supabase)に保存します。",
+        "「飲みたい」に保存した一杯と、20歳以上である旨の自己申告は、お使いの端末のブラウザにだけ保存し、クラウドには送りません。ブラウザのデータを消去したり、端末を変えたりすると、失われる場合があります。"
+      ]},
+      { title: "利用しているサービス", paras: [
+        "認証とデータの保存にSupabase、アプリの公開にVercel（本番サイト）またはChatGPT Sites（確認用ページ）、必要なスクリプトの配信にjsDelivrを利用しています。確認メールなどの送信は、認証の仕組みを通じて行います。問い合わせの窓口として、Instagram(Metaのサービス)を案内しています。"
+      ]},
+      { title: "アクセス解析", paras: ["現在、BAR LOGにはアクセス解析のタグを組み込んでいません。導入する場合は、このページで利用するサービスと情報の扱いをお知らせします。"] },
+      { title: "広告について", paras: [
+        "Google AdSenseの導入を準備しています。現在は広告配信を無効にしており、AdSenseの広告スクリプトも読み込んでいません。審査用の発行者確認メタタグだけでは広告配信は行われません。",
+        "広告を有効にした場合は、広告枠に「広告」と表示します。広告掲載の有無は、診断結果、検索順、おすすめ、好みの判定に影響しません。"
+      ]},
+      { title: "広告を有効にした場合の情報の扱い", paras: [
+        "広告を配信するGoogleなどの第三者は、Cookie、ウェブビーコン、IPアドレス、その他の識別子を使い、ブラウザや端末、閲覧・広告の表示や操作に関する情報を収集・利用することがあります。第三者がブラウザにCookieを保存・読み取ることがあります。これらは広告の配信、パーソナライズ、測定、不正防止などに使われます。",
+        "BAR LOGから広告コードへ、登録メールアドレス、パスワード、認証トークン、飲んだ記録、好みの評価を渡す処理は組み込みません。広告事業者が独自に取得する情報の扱いは、その事業者のポリシーをご確認ください。"
+      ]},
+      { title: "広告とCookieの設定", paras: [
+        "広告のパーソナライズはGoogleのマイアドセンターで管理できます。Cookieはお使いのブラウザでも制限・削除できます。ただし、ログインや端末内の保存機能に影響する場合があります。必要な地域では、広告の導入時に同意の確認・変更の仕組みも用意します。"
+      ]},
+      { title: "削除・訂正などのご相談", paras: [
+        "記録やアカウントの削除、情報の開示・訂正・利用停止などをご希望の場合は、問い合わせ先までご連絡ください。アプリ内での記録の個別削除と退会は、現在準備中です。"
+      ]}
+    ], true, ["terms", "drinking", "contact"]);
+    root.appendChild(el('<div class="foot-links"><a class="foot-link" href="https://policies.google.com/technologies/partner-sites?hl=ja" target="_blank" rel="noopener noreferrer">Googleによる情報の利用</a><a class="foot-link" href="https://myadcenter.google.com/" target="_blank" rel="noopener noreferrer">Googleの広告設定</a></div>'));
+  }
+
+  function renderTerms(root) {
+    renderInfoPage(root, "利用規約", "BAR LOGをご利用いただく前に、お読みください。", [
+      { title: "対象となる方", paras: ["BAR LOGは、20歳以上の方を対象としています。20歳未満の方は利用できません。"] },
+      { title: "サービスの内容", paras: ["お酒の情報の閲覧、気分や好みに合わせたおすすめの表示、飲んだ記録の保存を提供します。飲酒や飲酒量を増やすことを勧めるものではありません。"] },
+      { title: "禁止事項", items: [
+        "法令や公序良俗に反する行為",
+        "サービスの運営を妨げる行為や、不正アクセス",
+        "他の人になりすます行為",
+        "20歳未満の方に、本サービスを通じて飲酒を勧めること"
+      ]},
+      { title: "掲載情報について", paras: [
+        "味、見た目、材料、レシピなどの情報は、一般的な目安です。お店や作り方によって異なります。内容の正確さに努めますが、すべてを保証するものではありません。注文のときは、お店にご確認ください。"
+      ]},
+      { title: "おすすめ・診断について", paras: [
+        "おすすめや診断の結果は、好みの目安です。体質や体調、服薬の状況に合うかどうかを示すものではありません。飲むかどうか、量、注文の内容は、ご自身の判断で決めてください。"
+      ]},
+      { title: "サービスの変更", paras: ["機能や内容は、予告なく変更・中断・終了することがあります。変更した場合は、必要に応じてこのページなどでお知らせします。"] },
+      { title: "問い合わせ", paras: ["ご意見やお困りごとは、問い合わせ先までご連絡ください。"] }
+    ], true, ["privacy", "drinking", "contact"]);
+  }
+
+  function renderHowto(root) {
+    renderInfoPage(root, "使い方", "BAR LOGのアプリとしての使い方です。お店でのふるまいは「バーの過ごし方」にまとめています。", [
+      { title: "今日の一杯", paras: [
+        "ホームに3杯の候補が出ます。横にスワイプするか、前後のボタンで切り替えられます。「選び直す」で3杯をまとめて、「この一杯だけ替える」でその1杯だけを入れ替えます。",
+        "カードの理由は、診断の回答や記録など、実際に使った根拠から出しています。飲む日の参考にするもので、飲まない日があっても大丈夫です。"
+      ]},
+      { title: "気分で診断・探す", paras: ["「今夜の一杯を診断」で、4つの質問から5杯を選びます。「探す」からは、名前やベースなどで自分で選べます。"] },
+      { title: "お店で使う", paras: [
+        "詳細で名前、見た目、味の特徴を確認できます。お店になかったときは「この店になかった」で、代わりに頼めそうな一杯を見られます。この操作は、記録や好みには反映されません。"
+      ]},
+      { title: "「飲みたい」と「好み」", paras: [
+        "「飲んでみたい」「また飲みたい」は、次回のための保存です。飲んだ記録ではありません。「好み・ふつう・好みじゃない」は、実際に飲んだあとの評価で、「飲んだ一杯を記録」で保存すると、おすすめに反映されます。"
+      ]},
+      { title: "飲んだ一杯を記録する", paras: ["記録にはログインが必要です。評価を選んで保存すると、MAPが点灯し、次のおすすめに反映されます。"] },
+      { title: "MAPとコレクション", paras: ["下部メニューの「集める」から、MAPとテーマ別コレクションを切り替えられます。飲んだ記録は両方へ自動で反映され、同じカクテルは1種類として数えます。気になる一杯は保存できます。保存した一杯は「探す」の「飲みたい一杯」から確認できます。MAPは飲んだ種類の探索状況を表します。お店の地図ではありません。短い期間で全部をそろえることや、杯数を競うものではありません。"] },
+      { title: "保存先と引き継ぎ", items: [
+        "飲んだ記録は、ログイン中のアカウントに保存されます。別の端末でも、同じアカウントでログインすれば見られます。",
+        "「飲みたい」に保存した一杯と、20歳以上である旨の自己申告は、この端末のブラウザにだけ保存されます。別の端末には引き継がれず、ブラウザのデータを消すと失われる場合があります。",
+        "記録の個別削除と退会は、現在準備中です。ご希望の場合は、問い合わせ先までご連絡ください。",
+        "ログインできないときは、「パスワードをお忘れですか？」や確認メールの再送をお試しください。それでも難しい場合は、問い合わせ先へ。"
+      ]},
+      { title: "20歳以上の方向けです", paras: [
+        "BAR LOGは、20歳以上の方を対象としています。飲まない日は、気になる一杯を眺めて「飲んでみたい」に保存するだけでも使えます。"
+      ]}
+    ], false, ["drinking", "contact", "privacy"]);
+  }
+
+  var authDraftEmail = ""; // 利用規約などを見て戻っても、入力したメールアドレスを残す
+  function authHomeBtn() {
+    var b = el('<button type="button" class="ghost-btn">ホームへ戻る</button>');
+    b.addEventListener("click", confirmGoHome); // 入力中の内容がある場合は、確認が出る
+    return b;
+  }
+  function authInputFilled() {
+    var inputs = document.querySelectorAll("#app input");
+    for (var i = 0; i < inputs.length; i++) { if (inputs[i].value) return true; }
+    return false;
+  }
+
+  // ホーム下部: 年齢表記と、使い方・各ページへのリンク
+  function homeFooter(root) {
+    var foot = el('<footer class="home-foot"><p class="age-note"></p></footer>');
+    foot.querySelector('.age-note').textContent = AGE_NOTICE;
+    foot.appendChild(pageLinks(["about", "howto", "drinking", "contact", "site", "terms", "privacy"]));
+    root.appendChild(foot);
+  }
+  function aboutNav(root) {
+    var list = el('<div class="nav-list"></div>');
+    [["使い方", "アプリの使い方と、保存先の説明", "howto"], ["飲酒に関する注意", "20歳以上の方向けです", "drinking"], ["利用規約", "", "terms"], ["プライバシーポリシー", "", "privacy"], ["問い合わせ", "ご感想・お困りごと", "contact"]].forEach(function (r) {
+      var b = el('<button class="nav-item"><div><div class="nav-title">' + r[0] + '</div>' + (r[1] ? '<div class="nav-sub">' + r[1] + '</div>' : '') + '</div><span class="row-arrow"></span></button>');
+      b.addEventListener("click", function () { navigate(r[2]); });
+      list.appendChild(b);
+    });
+    root.appendChild(list);
+    root.appendChild(el('<a class="studio-card" href="' + OFFICIAL_SITE_URL + '"><span><strong>こってり開発部へ戻る</strong><small>ほかのアプリ・開発部について</small></span><span aria-hidden="true">↗</span></a>'));
+  }
+
+  /* ---- ブラウザの戻る操作と、内部の履歴(history)をそろえる ----
+     画面を進めるたびにブラウザ履歴を1件足し、画面が戻ったらその分だけ戻す。
+     iPhoneのスワイプバックでも、アプリの前の画面に戻る。 */
+  var browserDepth = 0, suppressPop = false;
+  function syncBrowserHistory() {
+    try {
+      var want = history.length;
+      if (want > browserDepth) {
+        for (var k = browserDepth + 1; k <= want; k++) window.history.pushState({ barlog: k }, "");
+        browserDepth = want;
+      } else if (want < browserDepth) {
+        var back = browserDepth - want;
+        browserDepth = want;
+        suppressPop = true;
+        window.history.go(-back);
+        setTimeout(function () { suppressPop = false; }, 600);
+      }
+    } catch (e) { /* history API unavailable */ }
+  }
+  window.addEventListener("popstate", function (e) {
+    if (suppressPop) { suppressPop = false; return; }
+    var depth = (e.state && e.state.barlog) || 0;
+    if (depth < browserDepth) {
+      var pops = browserDepth - depth;
+      browserDepth = depth; // 先に更新し、描画後の同期で二重に戻さない
+      for (var i = 0; i < pops && history.length; i++) state = history.pop();
+      render();
+    }
+  });
+
+  /* ============================================================
+     バーの過ごし方ガイド
+     お店のタイプごとに、入り方・頼み方・過ごし方・会計を案内する。
+     タイプを足すときは BAR_GUIDES に1件足すだけ。文面は「一般的な傾向」で、
+     金額など店ごとに違うものは書かない。examples は DRINKS のid。
+     ============================================================ */
+  var BAR_GUIDES = [
+    {
+      id: "authentic", name: "オーセンティックバー",
+      tagline: "落ち着いて、一杯とじっくり向き合う店",
+      sections: [
+        { title: "雰囲気", items: [
+          "照明は控えめで、カウンターを中心にした静かな空間が多い。",
+          "バーテンダーが一杯ずつ丁寧に作るスタイルが一般的。",
+          "声のボリュームは控えめにすると、店の空気に馴染みやすい。"
+        ]},
+        { title: "入り方", items: [
+          "予約なしで入れる店も多いが、電話で席の空きを聞いておくと安心。",
+          "入口で少し待つと、空いている席へ案内してもらえる店が多い。",
+          "初めてなら「初めてなんですが」と最初に伝えて大丈夫。"
+        ]},
+        { title: "最初の一杯の頼み方", items: [
+          "「軽めで、さっぱりしたものを」のように、好みを言葉で伝えるのが自然。",
+          "ジントニックなどの定番から始めると、その店の味の基準が分かる。",
+          "メニューがない店では、ベースのお酒や気分で相談してよい。"
+        ]},
+        { title: "過ごし方の目安", items: [
+          "1〜2杯で切り上げる人も多い。ゆっくり味わって、急がなくてよい。",
+          "2杯目は、違うベースや少し強めの一杯にすると変化が楽しめる。",
+          "バーテンダーに話しかけるなら、手が空いていそうなタイミングで。"
+        ]},
+        { title: "お会計", items: [
+          "席料(チャージ)やサービス料がかかる店がある。金額は店ごとに違う。",
+          "気になるときは、注文の前に聞いて大丈夫。",
+          "会計は席で頼むのが一般的。カードが使えるかは店による。"
+        ]},
+        { title: "こんな日に向く", items: [
+          "一人で静かに飲みたい夜。",
+          "大切な人と、落ち着いて話したい日。",
+          "定番カクテルの味を知りたいとき。"
+        ]}
+      ],
+      examples: ["gin_tonic", "old_fashioned", "manhattan", "martini"]
+    },
+    {
+      id: "shot", name: "ショットバー",
+      tagline: "一杯ずつ気軽に頼んで、短く立ち寄れる店",
+      sections: [
+        { title: "雰囲気", items: [
+          "カウンター中心で、仕事帰りに立ち寄りやすい気軽さの店が多い。",
+          "ウイスキーなどをそのまま、または簡単なカクテルで楽しめる。",
+          "雰囲気は店によって大きく違う。入口の様子から想像してみる。"
+        ]},
+        { title: "入り方", items: [
+          "看板やメニューが外に出ていない店もある。気になったら覗いてみてよい。",
+          "空いているカウンター席を選ぶのが基本。迷ったら「一人です」と声をかける。"
+        ]},
+        { title: "最初の一杯の頼み方", items: [
+          "「とりあえずハイボールで」のように、定番から始めてよい。",
+          "ウイスキーは銘柄が分からなくても、「クセの少ないもの」などと好みで伝えられる。",
+          "飲み方(ストレート、水割り、ハイボールなど)を聞かれることがある。"
+        ]},
+        { title: "過ごし方の目安", items: [
+          "1〜2杯で短く立ち寄る使い方も自然。",
+          "混み合っているときは、早めに切り上げると気持ちよく過ごせる。"
+        ]},
+        { title: "お会計", items: [
+          "チャージの有無は店による。ない店も多い。",
+          "料金は、店頭やメニューで確認できる店が多い。",
+          "会計は席で頼むのが一般的。"
+        ]},
+        { title: "こんな日に向く", items: [
+          "一人で気軽に立ち寄りたいとき。",
+          "ウイスキーなど、好きなお酒を選びたいとき。",
+          "一杯だけで帰りたい日。"
+        ]}
+      ],
+      examples: ["highball", "moscow_mule", "gin_rickey", "old_fashioned"]
+    },
+    {
+      id: "dining", name: "ダイニングバー",
+      tagline: "食事もお酒も、気軽に楽しめる店",
+      sections: [
+        { title: "雰囲気", items: [
+          "明るめの照明とテーブル席が多く、グループでも入りやすい。",
+          "料理が充実していて、食事から始められる。",
+          "会話や笑い声を気にしすぎなくてよい店が多い。"
+        ]},
+        { title: "入り方", items: [
+          "人気のある店は、予約が安心。人数と時間を伝えておく。",
+          "席の希望(テーブル、カウンターなど)があれば、聞いてみてよい。"
+        ]},
+        { title: "最初の一杯の頼み方", items: [
+          "料理に合わせて選ぶと失敗しにくい。",
+          "迷ったら、甘さと強さの好みを店員さんに伝えて選んでもらう。",
+          "最初は軽めにして、食事のあとに気になる一杯を頼む流れもある。"
+        ]},
+        { title: "過ごし方の目安", items: [
+          "食事とあわせて、1〜2時間ほどを目安にする人が多い。",
+          "ラストオーダーの時間は、入店時に確認しておくと安心。",
+          "長居するなら、ドリンクを少しずつ追加していくのが一般的。"
+        ]},
+        { title: "お会計", items: [
+          "お通しやテーブルチャージがかかる店がある。",
+          "席で払う店と、レジでまとめて払う店がある。",
+          "割り勘にしたいときは、注文の前に伝えると会計がスムーズ。"
+        ]},
+        { title: "こんな日に向く", items: [
+          "友人や同僚と、食事をしながら飲みたい日。",
+          "バーに慣れていなくて、まず気軽な雰囲気から入りたいとき。",
+          "二次会や、会話を楽しみたい夜。"
+        ]}
+      ],
+      examples: ["aperol_spritz", "moscow_mule", "cassis_orange", "mojito"]
+    },
+    {
+      id: "hotel", name: "ホテルバー",
+      tagline: "非日常の空間で、特別な一杯を味わう店",
+      sections: [
+        { title: "雰囲気", items: [
+          "落ち着いた空間と、丁寧なサービスが特徴の店が多い。",
+          "窓からの眺めを楽しめる店もある。",
+          "服装はきれいめにしておくと安心。"
+        ]},
+        { title: "入り方", items: [
+          "宿泊客以外も入れる店が多いが、ホテルや時間帯によって違う。",
+          "予約しておくと席を確保しやすい。眺めのよい席は特に早めが安心。",
+          "入口で人数と予約の有無を伝えると、席に案内してもらえる。"
+        ]},
+        { title: "最初の一杯の頼み方", items: [
+          "メニューが用意されている店が多く、説明を見て選びやすい。",
+          "迷ったら「このお店のおすすめは？」と聞いてよい。",
+          "ノンアルコールのメニューがある店もある。体調や予定に合わせて選べる。"
+        ]},
+        { title: "過ごし方の目安", items: [
+          "1〜2杯で、景色や雰囲気をゆっくり味わう使い方が一般的。",
+          "食事のあとの一杯や、待ち合わせの前後の時間にも向く。"
+        ]},
+        { title: "お会計", items: [
+          "サービス料やチャージがかかる店がある。金額は店ごとに違う。",
+          "総額が気になるときは、注文の前に聞いて大丈夫。"
+        ]},
+        { title: "こんな日に向く", items: [
+          "記念日や、特別な日。",
+          "大切な人との一杯。",
+          "いつもより少し背伸びしたい夜。"
+        ]}
+      ],
+      examples: ["french_75", "manhattan", "sidecar", "aperol_spritz"]
+    }
+  ];
+
+  var GUIDE_NOTES = [
+    "ここに書いたのは一般的な傾向です。料金やルールは店ごとに違うので、迷ったら店員さんに聞いて大丈夫です。",
+    "20歳未満の飲酒は法律で禁止されています。飲酒を伴う運転はしないでください。"
+  ];
+
+  function guideNotes() {
+    return el('<div class="guide-note">' + GUIDE_NOTES.join('<br>') + '</div>');
+  }
+
+  function renderGuideIndex(root) {
+    root.appendChild(topbar(true));
+    root.appendChild(el('<div class="map-heading"><div class="v6-kicker">GUIDE</div><h2>バーの過ごし方</h2><p>お店のタイプ別に、入り方と頼み方をまとめました。</p></div>'));
+    var list = el('<div class="nav-list"></div>');
+    BAR_GUIDES.forEach(function (g) {
+      var b = el('<button class="nav-item"><div><div class="nav-title">' + g.name + '</div><div class="nav-sub">' + g.tagline + '</div></div><span class="row-arrow"></span></button>');
+      b.addEventListener('click', function () { navigate('guideDetail', { guideId: g.id }); });
+      list.appendChild(b);
+    });
+    root.appendChild(list);
+    root.appendChild(guideNotes());
+  }
+
+  function renderGuideDetail(root) {
+    root.appendChild(topbar(true));
+    var g = BAR_GUIDES.find(function (x) { return x.id === state.guideId; });
+    if (!g) { root.appendChild(el('<div class="card empty">ガイドが見つかりませんでした。</div>')); return; }
+    root.appendChild(el('<div class="map-heading"><div class="v6-kicker">GUIDE</div><h2>' + g.name + '</h2><p>' + g.tagline + '</p></div>'));
+    g.sections.forEach(function (sec) {
+      var block = el('<section class="guide-block"><h3>' + sec.title + '</h3><ul></ul></section>');
+      var ul = block.querySelector('ul');
+      sec.items.forEach(function (t) { ul.appendChild(el('<li>' + t + '</li>')); });
+      root.appendChild(block);
+    });
+    var examples = (g.examples || []).map(drinkById).filter(Boolean);
+    if (examples.length) {
+      var ex = el('<section class="guide-block"><h3>頼みやすい一杯の例</h3><div class="guide-examples"></div></section>');
+      var row = ex.querySelector('.guide-examples');
+      examples.forEach(function (d) {
+        var chip = el('<button class="chip">' + d.name + '</button>');
+        chip.addEventListener('click', function () { navigate('detail', { detailId: d.id, pendingPref: null }); });
+        row.appendChild(chip);
+      });
+      root.appendChild(ex);
+    }
+    var diag = el('<button class="primary-btn">今夜の一杯を診断する</button>');
+    diag.addEventListener('click', function () { navigate('question', { genre: 'cocktail', answers: {}, qIndex: 0 }); });
+    root.appendChild(diag);
+    root.appendChild(guideNotes());
   }
 
   // Favorites are stored on this device separately from the existing Supabase logs.
@@ -1433,20 +2559,19 @@ html{background:#08090b;overflow-x:hidden}body{background:#08090b;font-family:-a
   }
 
   function renderStart(root) {
+    missedHere = [];
     root.appendChild(topbar(false));
-    root.appendChild(el('<div class="v6-hero"><div class="v6-kicker">BAR LOG</div><div class="v6-title">今夜、何を飲もう。</div><div class="v6-copy">気分に合う一杯を見つけて、飲んだら記録する。</div></div>'));
-    var today = todayDrink(), profile = tasteProfile();
-    var alreadyTried = profile.rated.some(function (item) { return item.drink.id === today.id; });
-    var reason = personalReason(today, profile) || (profile.ready && !alreadyTried ? 'まだ飲んでいない、新しい候補' : '今日はこの一杯から');
-    var pick = el('<button class="today-card"><span class="today-icon">' + drinkIllustration(today) + '</span><span class="today-text"><span class="today-eyebrow">今日の一杯</span><span class="today-name">' + today.name + '</span><span class="today-line">' + reason + '</span></span><span class="row-arrow"></span></button>');
-    pick.addEventListener('click', function () { navigate('detail', {detailId: today.id, pendingPref: null}); }); root.appendChild(pick);
+    root.appendChild(el('<div class="v6-hero"><div class="v6-title">今夜、何を飲もう。</div><div class="v6-copy">気分に合う一杯を見つけて、飲んだら記録する。</div></div>'));
+    renderDailyPicks(root);
     var choose = el('<button class="v6-primary"><div><small>気分で探す</small><strong>今夜の一杯を診断</strong></div><div class="v6-go"></div></button>');
     choose.addEventListener('click', function () { var keys = Object.keys(GENRES); if (keys.length === 1) navigate('question', {genre: keys[0], answers: {}, qIndex: 0}); else navigate('genreSelect'); });
     root.appendChild(choose);
     var registry = el('<button class="v6-secondary"><div><strong>カクテルを探す</strong><span>全' + DRINKS.length + '種類を検索</span></div><span class="row-arrow"></span></button>');
     registry.addEventListener('click', function () { navigate('registry', {searchText: ''}); }); root.appendChild(registry);
-    var mapBtn = el('<button class="v6-secondary">' + icon('map') + '<div><strong>COCKTAIL MAP</strong><span>飲んだ一杯から世界を広げる</span></div><span class="row-arrow"></span></button>');
+    var mapBtn = el('<button class="v6-secondary">' + icon('map') + '<div><strong>カクテルを集める</strong><span>MAPとテーマ別コレクション</span></div><span class="row-arrow"></span></button>');
     mapBtn.addEventListener('click', function () { navigate('map', { revealId: null }); }); root.appendChild(mapBtn);
+    var guideBtn = el('<button class="v6-secondary"><div><strong>バーの過ごし方</strong><span>お店のタイプ別に、入り方と頼み方を案内</span></div><span class="row-arrow"></span></button>');
+    guideBtn.addEventListener('click', function () { navigate('guide'); }); root.appendChild(guideBtn);
     root.appendChild(el('<div class="v6-section">あなたの記録</div>'));
     if (currentUser && loadError) {
       var errCard = el('<div class="card"><div class="sub-note">記録を読み込めませんでした</div></div>');
@@ -1457,35 +2582,134 @@ html{background:#08090b;overflow-x:hidden}body{background:#08090b;font-family:-a
     var last = stock.length ? DRINKS.find(function(d){return d.id === stock[stock.length-1].drinkId;}) : null;
     root.appendChild(el('<div class="v6-stats"><div class="v6-stat"><div class="v6-stat-num">' + stock.length + '</div><div class="v6-stat-label">飲んだ記録</div></div><div class="v6-stat"><div class="v6-stat-num" style="font-size:16px;padding-top:5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + (last ? last.name : '—') + '</div><div class="v6-stat-label">最近の一杯</div></div></div>'));
     if (!currentUser) root.appendChild(el('<div class="sub-note">診断は登録なしで使えます。飲んだ一杯を記録すると、次のおすすめが好みに近づきます。</div>'));
+    homeFooter(root);
   }
 
   function drinkListRow(d, context, note) {
-    var row = el('<button class="drink-list-row"><span class="drink-list-art">' + drinkIllustration(d) + '</span><span class="drink-list-content"><span class="drink-list-name">' + d.name + '</span><span class="drink-list-look">' + d.look + '</span>' + (note ? '<span class="drink-list-note">' + note + '</span>' : '') + '</span><span class="row-arrow"></span></button>');
+    var row = el('<button class="drink-list-row"><span class="drink-list-art">' + drinkIllustration(d) + '</span><span class="drink-list-content"><span class="drink-list-name">' + d.name + '</span>' + chipsHtml(d, 'sm', false) + '<span class="drink-list-look">' + d.look + '</span>' + (note ? '<span class="drink-list-note">' + note + '</span>' : '') + '</span><span class="row-arrow"></span></button>');
     row.addEventListener('click', function(){ navigate('detail', {detailId:d.id, pendingPref:null}); });
     return row;
   }
 
+  // 低評価で飲んだ一杯の近くは薦めない。低評価だった場合は、別の方向から選ぶ。
+  function lastPref(drinkId) {
+    for (var i = stock.length - 1; i >= 0; i--) { if (stock[i].drinkId === drinkId) return stock[i].preference; }
+    return null;
+  }
   function nextMapDrink(d) {
     var tried = {};
     stock.forEach(function (log) { tried[log.drinkId] = true; });
-    return relatedDrinks(d, DRINKS.length).find(function (item) { return !tried[item.id]; }) || null;
+    var profile = tasteProfile();
+    var candidates = relatedDrinks(d, DRINKS.length).filter(function (item) { return !tried[item.id] && !isAvoided(item, profile); });
+    if (lastPref(d.id) !== 1) return candidates[0] || null;
+    var pool = DRINKS.filter(function (item) { return !tried[item.id] && !isAvoided(item, profile); });
+    pool.sort(function (a, b) {
+      return (recAdjust(b, profile) - recAdjust(a, profile)) || (tagDistance(b, d) - tagDistance(a, d)) || (a.id < b.id ? -1 : 1);
+    });
+    return pool[0] || null;
+  }
+
+  // 同じ飲んだ記録をMAPとテーマ別コレクションの両方に反映する。
+  var COLLECTIONS = [
+    { id: 'classics', name: 'バーの定番', desc: 'まず知っておきたい、味わいの異なる5つの定番。', drinks: ['gin_tonic','martini','highball','moscow_mule','margarita'] },
+    { id: 'citrus', name: '柑橘を楽しむ', desc: 'ライム、レモン、グレープフルーツ。酸味の違いを楽しむ。', drinks: ['gimlet','daiquiri','whiskey_sour','paloma','sidecar'] },
+    { id: 'after-dinner', name: '食後にゆっくり', desc: 'コーヒーやミルク、ウイスキーの風味を味わう一杯。', drinks: ['espresso_martini','white_russian','kahlua_milk','old_fashioned'] },
+    { id: 'tropical', name: '南国の気分', desc: '果実の香りや色合いから、いつもと違う一杯を。', drinks: ['mai_tai','pina_colada','tequila_sunrise','matador','singapore_sling'] },
+    { id: 'bitter', name: 'ほろ苦さを知る', desc: '甘さだけではない、苦味やハーブの奥行き。', drinks: ['negroni','boulevardier','aperol_spritz','spumoni'] },
+    { id: 'colors', name: '色を楽しむ', desc: '赤、青紫、オレンジ。グラスの中の色にも注目。', drinks: ['cosmopolitan','aviation','tequila_sunrise','cassis_orange','bloody_mary'] },
+    { id: 'gin', name: 'ジンの香り', desc: 'すっきりした炭酸から、ハーブや花を感じる一杯まで。', drinks: ['gin_tonic','gin_rickey','martini','gimlet','aviation','bees_knees','tom_collins'] },
+    { id: 'whiskey', name: 'ウイスキーを味わう', desc: '炭酸、酸味、ほろ苦さ。ウイスキーの表情の違いを知る。', drinks: ['highball','whiskey_sour','old_fashioned','manhattan','boulevardier','sazerac'] },
+    { id: 'rum', name: 'ラムの世界', desc: 'ミントやライム、果実と出会うラムのカクテル。', drinks: ['mojito','daiquiri','dark_and_stormy','mai_tai','pina_colada','cuba_libre'] },
+    { id: 'vodka', name: 'ウォッカの変化', desc: '柑橘、コーヒー、トマト。合わせる素材で変わる味わい。', drinks: ['moscow_mule','cosmopolitan','espresso_martini','bloody_mary','screwdriver','white_russian','salty_dog'] },
+    { id: 'fruity', name: '果実と甘さ', desc: 'カシス、桃、オレンジ。果実の香りから選ぶ一杯。', drinks: ['cassis_orange','cassis_soda','cassis_oolong','fuzzy_navel','tequila_sunrise','mimosa'] },
+    { id: 'sparkling', name: '炭酸の爽やかさ', desc: '泡の軽やかさを楽しむ、ソーダやスパークリングの一杯。', drinks: ['gin_rickey','highball','mojito','moscow_mule','tom_collins','aperol_spritz','mimosa'] }
+  ];
+  function collectionDrinks(c) { return c.drinks.map(drinkById).filter(Boolean); }
+  function collectionRecords() {
+    var records = {};
+    stock.forEach(function (log) { records[log.drinkId] = log; });
+    return records;
+  }
+  function collectionProgress(c, records) {
+    var drinks = collectionDrinks(c);
+    return { total: drinks.length, done: drinks.filter(function (d) { return !!records[d.id]; }).length };
+  }
+  function collectHeader(root, tab) {
+    root.appendChild(topbar(true));
+    root.appendChild(el('<div class="map-heading"><h2>カクテルを集める</h2><p>自分のペースで、好きな一杯を見つけよう。</p></div>'));
+    var tabs = el('<div class="collect-tabs" role="group" aria-label="集める画面の切り替え"></div>');
+    [{ screen:'map', label:'MAP' }, { screen:'collections', label:'コレクション' }].forEach(function (item) {
+      var active = item.screen === tab;
+      var b = el('<button type="button" class="'+(active?'active':'')+'" aria-pressed="'+active+'">'+item.label+'</button>');
+      b.addEventListener('click',function () { if (!active) navigate(item.screen, { revealId: null }); });
+      tabs.appendChild(b);
+    });
+    root.appendChild(tabs);
+  }
+  function renderCollections(root) {
+    collectHeader(root, 'collections');
+    var records = collectionRecords();
+    var list = el('<div class="collection-list"></div>');
+    COLLECTIONS.forEach(function (c) {
+      var progress = collectionProgress(c, records);
+      var complete = progress.total > 0 && progress.done === progress.total;
+      var arts = collectionDrinks(c).map(function (d) { return '<span class="collection-mini ' + (records[d.id] ? 'experienced' : '') + '">' + drinkIllustration(d) + '<span>' + d.name + '</span><small>' + (records[d.id] ? '体験済み' : '未体験') + '</small></span>'; }).join('');
+      var b = el('<button type="button" class="collection-cover '+(complete?'complete':'')+'"><span class="collection-top"><strong>'+c.name+'</strong><span class="collection-count">体験済み '+progress.done+' / '+progress.total+'</span></span><span class="collection-desc">'+c.desc+'</span><span class="collection-art">'+arts+'</span><span class="collection-bar" aria-hidden="true"><span style="width:'+(progress.total ? progress.done/progress.total*100 : 0)+'%"></span></span><span class="collection-state"><span>'+(complete?'コレクションが揃いました':'テーマから次の一杯を探す')+'</span><span>見る</span></span></button>');
+      b.addEventListener('click',function () { navigate('collectionDetail', { collectionId: c.id }); });
+      list.appendChild(b);
+    });
+    root.appendChild(list);
+    root.appendChild(el('<p class="collection-note">飲んだ記録がMAPと各テーマへ自動で反映されます。同じ一杯は何度記録しても1種類として数えます。期限はありません。</p>'));
+    if (!currentUser) {
+      var login = el('<button class="ghost-btn">ログインして体験を記録する</button>');
+      login.addEventListener('click',function () { navigate('auth'); }); root.appendChild(login);
+    }
+  }
+  function renderCollectionDetail(root) {
+    collectHeader(root, 'collections');
+    var back = el('<button class="collection-back">コレクション一覧へ</button>');
+    back.addEventListener('click', function () { if (history.length && history[history.length-1].screen === 'collections') goBack(); else navigate('collections'); });
+    root.appendChild(back);
+    var c = COLLECTIONS.find(function (item) { return item.id === state.collectionId; });
+    if (!c) { root.appendChild(el('<p class="empty">コレクションが見つかりませんでした。</p>')); return; }
+    var records = collectionRecords(), progress = collectionProgress(c, records);
+    root.appendChild(el('<div class="collection-summary"><h3>'+c.name+'</h3><p class="collection-desc">'+c.desc+'</p><strong>体験済み '+progress.done+' / '+progress.total+'</strong><p class="collection-note">'+(progress.done===progress.total?'あなたの体験で、このコレクションが揃いました。気に入った一杯を振り返ってみよう。':'気になる一杯は「飲んでみたい」に保存。飲む機会があったら記録しよう。')+'</p></div>'));
+    var list = el('<div class="collection-drinks"></div>');
+    var saved = favoriteIds();
+    collectionDrinks(c).forEach(function (d) {
+      var log = records[d.id];
+      var card = el('<section class="collection-drink '+(log?'recorded':'untried')+'"></section>');
+      card.appendChild(drinkListRow(d));
+      var date = log && log.timestamp ? new Date(log.timestamp) : null;
+      var dateText = date && !isNaN(date.getTime()) ? date.toLocaleDateString('ja-JP') : '';
+      var meta = el('<div class="collection-meta"><span></span><span></span></div>');
+      meta.children[0].textContent = log ? '体験済み · '+(PREF_LABEL[log.preference] || '記録済み') : 'まだ飲んでいない一杯';
+      meta.children[1].textContent = dateText; card.appendChild(meta);
+      var isSaved = saved.indexOf(d.id) !== -1;
+      var wish = el('<button type="button" class="collection-wish" aria-pressed="'+isSaved+'"></button>');
+      wish.textContent = isSaved ? (log?'「また飲みたい」に保存済み':'「飲んでみたい」に保存済み') : (log?'また飲みたい':'飲んでみたい');
+      wish.addEventListener('click',function () { toggleFavorite(d.id); }); card.appendChild(wish);
+      list.appendChild(card);
+    });
+    root.appendChild(list);
+    root.appendChild(el('<p class="collection-note">保存しただけでは体験済みに数えません。お気に入りはこの端末に、飲んだ記録はログイン中のアカウントに保存されます。</p>'));
   }
 
   function renderMap(root) {
-    root.appendChild(topbar(true));
-    root.appendChild(el('<div class="map-heading"><div class="v6-kicker">EXPLORE</div><h2>COCKTAIL MAP</h2><p>飲んだ一杯から、次の一杯へ。</p></div>'));
+    collectHeader(root, 'map');
     var tried = {};
     stock.forEach(function (log) { tried[log.drinkId] = true; });
     var count = Object.keys(tried).filter(function (id) { return DRINKS.some(function (d) { return d.id === id; }); }).length;
     root.appendChild(el('<div class="map-progress"><strong>' + count + '</strong><span> / ' + DRINKS.length + '種類を探索</span></div>'));
+    root.appendChild(el('<div class="sub-note">飲んだ種類の記録です。短い期間で全部をそろえることや、杯数を競うものではありません。</div>'));
     if (!currentUser) root.appendChild(el('<div class="sub-note">マップは自由に探索できます。飲んだ記録を残すとノードが点灯します。</div>'));
     if (state.revealId) {
       var revealed = DRINKS.find(function (d) { return d.id === state.revealId; });
       if (revealed) {
         var next = nextMapDrink(revealed);
-        var reveal = el('<div class="map-reveal"><div class="map-reveal-mark">' + icon('map') + '</div><div class="section-label">新しい一杯を発見</div><h3>' + revealed.name + 'が点灯しました</h3><p>' + (next ? '次に近い一杯は「' + next.name + '」。' : 'このベースの一杯をもっと探してみましょう。') + '</p></div>');
+        var reveal = el('<div class="map-reveal"><div class="map-reveal-mark">' + icon('map') + '</div><div class="section-label">新しい一杯を発見</div><h3>' + revealed.name + 'が点灯しました</h3><p>' + (next ? (lastPref(revealed.id) === 1 ? '次の参考に、違う方向の「' + next.name + '」。' : '次の機会の参考に、近い一杯は「' + next.name + '」。') : 'このベースの一杯をもっと探してみましょう。') + '</p></div>');
         if (next) {
-          var nextBtn = el('<button class="map-next-btn">次の一杯を見る <span class="row-arrow"></span></button>');
+          var nextBtn = el('<button class="map-next-btn">次回の候補を見る <span class="row-arrow"></span></button>');
           nextBtn.addEventListener('click', function () { navigate('detail', { detailId: next.id, pendingPref: null }); });
           reveal.appendChild(nextBtn);
         }
@@ -1510,13 +2734,22 @@ html{background:#08090b;overflow-x:hidden}body{background:#08090b;font-family:-a
   }
 
   function renderFavorites(root) {
-    root.appendChild(topbar(false)); root.appendChild(el('<h2>お気に入り</h2>'));
-    var ids = favoriteIds(), drinks = ids.map(function(id){return DRINKS.find(function(d){return d.id === id;});}).filter(Boolean);
-    if (!drinks.length) { root.appendChild(el('<div class="card empty">あとで飲みたい・また飲みたい一杯を、詳細画面から追加できます。</div>')); }
-    else { var list = el('<div class="drink-list"></div>'); drinks.forEach(function(d){
-      list.appendChild(drinkListRow(d));
-    }); root.appendChild(list); }
-    root.appendChild(el('<div class="sub-note">お気に入りはこの端末のブラウザに保存されます。</div>'));
+    root.appendChild(topbar(false)); root.appendChild(el('<h2>飲みたい一杯</h2>'));
+    var drinks = favoriteIds().map(drinkById).filter(Boolean);
+    var tried = {};
+    stock.forEach(function (log) { tried[log.drinkId] = true; });
+    if (!drinks.length) {
+      root.appendChild(el('<div class="card empty">飲んでみたい一杯・また飲みたい一杯を、詳細画面から保存できます。</div>'));
+    } else {
+      [['飲んでみたい', drinks.filter(function (d) { return !tried[d.id]; })], ['また飲みたい', drinks.filter(function (d) { return tried[d.id]; })]].forEach(function (g) {
+        if (!g[1].length) return;
+        root.appendChild(el('<div class="section-label">' + g[0] + '(' + g[1].length + ')</div>'));
+        var list = el('<div class="drink-list"></div>');
+        g[1].forEach(function (d) { list.appendChild(drinkListRow(d)); });
+        root.appendChild(list);
+      });
+    }
+    root.appendChild(el('<div class="sub-note">保存しただけでは、飲んだ記録・MAP・好みの判定には反映されません。保存先はこの端末のブラウザです。</div>'));
   }
 
   function renderProfile(root) {
@@ -1537,31 +2770,38 @@ html{background:#08090b;overflow-x:hidden}body{background:#08090b;font-family:-a
     }
     root.appendChild(insight);
     var nav = el('<div class="nav-list"></div>');
-    var items = [{screen:'map',title:'COCKTAIL MAP',sub:'未開拓の一杯を見つける',icon:'map'},{screen:'stock',title:'飲んだ記録',sub:stock.length+'件',icon:'log'},{screen:'badges',title:'達成バッジ',sub:Object.keys(earnedBadgeIds(stock)).length+' / '+BADGES.length+' 達成',icon:'award'}];
+    var items = [{screen:'map',title:'カクテルを集める',sub:'MAPとテーマ別コレクション',icon:'map'},{screen:'stock',title:'飲んだ記録',sub:stock.length+'件',icon:'log'},{screen:'badges',title:'達成バッジ',sub:Object.keys(earnedBadgeIds(stock)).length+' / '+BADGES.length+' 達成',icon:'award'}];
     items.forEach(function(item){var b=el('<button class="nav-item">'+icon(item.icon)+'<div><div class="nav-title">'+item.title+'</div><div class="nav-sub">'+item.sub+'</div></div><span class="row-arrow"></span></button>');b.addEventListener('click',function(){navigate(item.screen);});nav.appendChild(b);});root.appendChild(nav);
-    root.appendChild(el('<div class="sub-note">飲んだ記録はログイン中のアカウントに保存されます。お気に入りはこの端末に保存されます。</div>'));
+    root.appendChild(el('<div class="sub-note">飲んだ記録はログイン中のアカウントに保存されます。飲みたい一杯はこの端末に保存されます。記録の個別削除と退会は準備中です。ご希望の場合は、問い合わせ先までご連絡ください。</div>'));
+    aboutNav(root);
   }
 
   function renderTabbar() {
     var old = document.querySelector('.tabbar'); if (old) old.remove();
-    if (state.screen === 'auth' || state.screen === 'newPassword') return;
+    if (!ageOk || state.screen === 'auth' || state.screen === 'newPassword') return;
     var bar = el('<nav class="tabbar" aria-label="メインメニュー"></nav>');
-    var currentTab = state.screen;
-    if (currentTab === 'stock' || currentTab === 'badges' || currentTab === 'map') currentTab = 'profile';
-    if (currentTab === 'genreSelect' || currentTab === 'question' || currentTab === 'results') currentTab = 'start';
-    if (currentTab === 'detail') {
+    var TAB_OF = { stock: 'profile', badges: 'profile', map: 'map', collections: 'map', collectionDetail: 'map', favorites: 'registry', genreSelect: 'start', question: 'start', results: 'start', guide: 'start', guideDetail: 'start' };
+    var currentTab = TAB_OF[state.screen] || state.screen;
+    if (['detail', 'howto', 'terms', 'privacy', 'drinking', 'contact'].indexOf(state.screen) !== -1) {
       currentTab = 'start';
       for (var i = history.length - 1; i >= 0; i--) {
         var previous = history[i].screen;
-        if (previous === 'registry' || previous === 'favorites' || previous === 'profile' || previous === 'stock' || previous === 'map' || previous === 'results' || previous === 'start') {
-          currentTab = previous === 'stock' || previous === 'map' ? 'profile' : previous === 'results' ? 'start' : previous; break;
-        }
+        if (['registry', 'favorites', 'profile', 'stock', 'map', 'collections', 'collectionDetail', 'results', 'start'].indexOf(previous) !== -1) { currentTab = TAB_OF[previous] || previous; break; }
       }
     }
-    [{screen:'start',label:'ホーム',icon:'home'},{screen:'registry',label:'探す',icon:'search'},{screen:'favorites',label:'お気に入り',icon:'heart'},{screen:'profile',label:'マイページ',icon:'user'}].forEach(function(item){
-      var active = currentTab === item.screen;
+    function toTop() {
+      var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' });
+    }
+    [{screen:'start',label:'ホーム',icon:'home'},{screen:'registry',label:'探す',icon:'search'},{screen:'map',label:'集める',icon:'map'},{screen:'profile',label:'マイページ',icon:'user'}].forEach(function(item){
+      var active = currentTab === item.screen;       // 見た目の選択
+      var onThisScreen = state.screen === item.screen; // 実際にその画面にいるか
       var b = el('<button class="'+(active?'active':'')+'"'+(active?' aria-current="page"':'')+'>'+icon(item.icon)+'<span>'+item.label+'</span></button>');
-      b.addEventListener('click',function(){if(!active){if(item.screen === 'start') confirmGoHome(); else navigate(item.screen);}});bar.appendChild(b);
+      b.addEventListener('click', function () {
+        if (onThisScreen) { toTop(); return; }
+        if (item.screen === 'start') confirmGoHome(); else navigate(item.screen);
+      });
+      bar.appendChild(b);
     }); document.body.appendChild(bar);
   }
 
@@ -1625,10 +2865,17 @@ html{background:#08090b;overflow-x:hidden}body{background:#08090b;font-family:-a
     root.appendChild(el('<div class="result-context">' + (profile.ready ? '今の回答を中心に、飲んだ記録の好みも反映しています。' : '今の回答をもとに選びました。飲んだ記録が増えると好みも反映されます。') + '</div>'));
     root.appendChild(el('<div class="v6-results-head"><h2>5杯を選びました</h2><span>好みと冒険</span></div>'));
     var list = el('<div class="v6-result-list"></div>');
+    var top = state.results[0], rctx = dailyCtx();
     state.results.forEach(function (d, idx) {
-      var why = personalReason(d, profile);
-      var kind = state.results.kinds && state.results.kinds[idx] || 'おすすめ';
-      var card = el('<button class="v6-drink' + (idx === 0 ? ' best' : '') + '"><span class="v6-result-art">' + drinkIllustration(d) + '</span><span class="v6-result-copy"><span class="v6-rank">' + (idx === 0 ? 'いちばん近い一杯' : kind) + '</span><span class="v6-drink-name">' + d.name + '</span><span class="v6-drink-line">' + d.look + '</span>' + (why ? '<span class="result-why">' + why + '</span>' : '') + '</span><span class="v6-chevron"></span></button>');
+      var role = idx === 0 ? 'まず頼むなら' : idx <= 2 ? '近い候補'
+        : idx === 3 ? (state.results.kinds && state.results.kinds[3] === '少し意外' ? '少し違う方向' : '別の方向の候補')
+        : (rctx.tried[d.id] ? 'もう一度の一杯' : (stock.length ? 'はじめての一杯' : '新しい一杯'));
+      var lines = [];
+      if (idx > 0) { var df = diffFromTop(d, top); if (df) lines.push(df); }
+      var ar = answerReason(d, state.answers); if (ar) lines.push(ar);
+      var pr = personalReason(d, profile); if (pr) lines.push(pr);
+      if (idx === 4 && stock.length && !rctx.tried[d.id]) lines.push('まだ記録にない一杯');
+      var card = el('<button class="v6-drink' + (idx === 0 ? ' best' : '') + '"><span class="v6-result-art">' + drinkIllustration(d) + '</span><span class="v6-result-copy"><span class="v6-rank">' + role + '</span><span class="v6-drink-name">' + d.name + '</span>' + chipsHtml(d, 'sm', false) + '<span class="v6-drink-line">' + d.look + '</span>' + (lines.length ? '<span class="result-why">' + lines.join('<br>') + '</span>' : '') + (idx === 0 ? '<span class="result-go">詳細を見る</span>' : '') + '</span><span class="v6-chevron"></span></button>');
       card.addEventListener("click", function () { navigate("detail", { detailId: d.id, pendingPref: null }); });
       list.appendChild(card);
     });
@@ -1669,18 +2916,30 @@ html{background:#08090b;overflow-x:hidden}body{background:#08090b;font-family:-a
 
 
 
-    root.appendChild(el('<h2 style="text-align:center;">' + d.name + "</h2>"));
-    root.appendChild(el(
-      '<div class="result-tagline">' + subLabel(d) + " ・ " + d.line +
-      (d.carbonated ? ' <span class="carb-badge">炭酸あり</span>' : "") + "</div>"
-    ));
-
+    var tried = stock.some(function (log) { return log.drinkId === d.id; });
+    var saved = favoriteIds().indexOf(d.id) !== -1;
+    var en = EN_NAMES[d.id];
+    root.appendChild(el('<header class="order-head"><h2 class="order-name">' + d.name + '</h2>' + (en ? '<div class="order-en">' + en + '</div>' : '') + chipsHtml(d, 'lg', true) + '<div class="order-line">' + d.line + '</div></header>'));
     root.appendChild(el('<div class="drink-visual"><div class="detail-glass">' + drinkIllustration(d) + '</div><div class="drink-visual-caption"><div class="info-label">見た目</div><p>' + d.look + '</p></div></div>'));
-    if (history.length && history[history.length - 1].screen === 'map' && !stock.some(function (log) { return log.drinkId === d.id; })) {
-      root.appendChild(el('<div class="map-detail-hint">' + subLabel(d) + 'の未開拓の一杯。気になったらお気に入りに入れて、次のバーで探してみてください。</div>'));
+    if (history.length && history[history.length - 1].screen === 'map' && !tried) {
+      root.appendChild(el('<div class="map-detail-hint">' + (baseText(d) || 'この') + 'の未開拓の一杯。気になったら「飲んでみたい」に保存して、次のバーで探してみてください。</div>'));
     }
-    var favorite = el('<button class="favorite-toggle" aria-pressed="' + (favoriteIds().indexOf(d.id) !== -1) + '">' + icon('heart') + '<span>' + (favoriteIds().indexOf(d.id) !== -1 ? 'お気に入りから外す' : 'あとで飲みたい・また飲みたい') + '</span></button>');
-    favorite.addEventListener('click', function(){toggleFavorite(d.id);}); root.appendChild(favorite);
+    var actions = el('<div class="order-actions" style="grid-template-columns:1fr"><button type="button" class="order-btn miss-btn">この店になかった</button></div>');
+    actions.querySelector('.miss-btn').addEventListener('click', function () { showAlternatives(d); });
+    root.appendChild(actions);
+    var recBtn = el('<button type="button" class="order-btn rec-btn">飲んだので記録</button>');
+    recBtn.addEventListener('click', function () {
+      var t = document.getElementById('record-anchor'); if (!t) return;
+      var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      t.scrollIntoView({ block: 'center', behavior: reduce ? 'auto' : 'smooth' });
+      var first = t.parentNode.querySelector('.pref-btn, .primary-btn'); if (first) { try { first.focus({ preventScroll: true }); } catch (e) {} }
+    });
+    root.appendChild(recBtn);
+    if (state.altFor === d.id) renderAltPanel(d, root);
+    var wishLabel = tried ? (saved ? '「また飲みたい」に保存済み' : 'また飲みたい') : (saved ? '「飲んでみたい」に保存済み' : '飲んでみたい');
+    var favorite = el('<button class="favorite-toggle" aria-pressed="' + saved + '">' + icon('heart') + '<span>' + wishLabel + '</span></button>');
+    favorite.addEventListener('click', function () { toggleFavorite(d.id); }); root.appendChild(favorite);
+    root.appendChild(el('<div class="sub-note">強さは飲みごたえの目安で、アルコール度数ではありません。店によって名称や作り方、提供の有無は異なります。</div>'));
     root.appendChild(combinedTraitsBox(d));
     root.appendChild(el(
       '<div class="info-box" style="border-left:3px solid ' + d.color + ';"><div class="info-label">' + infoLabel1(d) + "</div>" + d.recipe + "</div>"
@@ -1724,7 +2983,9 @@ html{background:#08090b;overflow-x:hidden}body{background:#08090b;font-family:-a
     });
     root.appendChild(chipRow);
 
+    root.appendChild(el('<div id="record-anchor" tabindex="-1"></div>'));
     if (currentUser) {
+      root.appendChild(el('<div class="section-label">飲んだら、評価を選んで記録</div>'));
       var prefRow = el('<div class="pref-row"></div>');
       [3, 2, 1].forEach(function (v) {
         var b = el('<button class="pref-btn' + (state.pendingPref === v ? " selected" : "") + '">' + PREF_LABEL[v] + "</button>");
@@ -1736,7 +2997,7 @@ html{background:#08090b;overflow-x:hidden}body{background:#08090b;font-family:-a
       var errBox = el('<div class="err" style="text-align:center;min-height:14px;"></div>');
       root.appendChild(errBox);
 
-      var saveBtn = el('<button class="primary-btn">飲んだ記録を残す</button>');
+      var saveBtn = el('<button class="primary-btn">飲んだ一杯を記録</button>');
       saveBtn.addEventListener("click", async function () {
         if (!state.pendingPref) {
           errBox.textContent = "好みを選んでください";
@@ -1749,7 +3010,7 @@ html{background:#08090b;overflow-x:hidden}body{background:#08090b;font-family:-a
         if (!user) {
           errBox.textContent = "セッションが切れました。再度ログインしてください";
           saveBtn.disabled = false;
-          saveBtn.textContent = "飲んだ記録を残す";
+          saveBtn.textContent = "飲んだ一杯を記録";
           return;
         }
         var insertRes = await supabaseClient.from("logs").insert({
@@ -1758,7 +3019,7 @@ html{background:#08090b;overflow-x:hidden}body{background:#08090b;font-family:-a
         if (insertRes.error) {
           errBox.textContent = "保存に失敗しました。もう一度お試しください";
           saveBtn.disabled = false;
-          saveBtn.textContent = "飲んだ記録を残す";
+          saveBtn.textContent = "飲んだ一杯を記録";
           return;
         }
         var firstTime = !stock.some(function (log) { return log.drinkId === d.id; });
@@ -1824,6 +3085,8 @@ html{background:#08090b;overflow-x:hidden}body{background:#08090b;font-family:-a
   function renderRegistry(root) {
     root.appendChild(topbar(true));
     root.appendChild(el('<h2>探す</h2>'));
+    var wishes = el('<button class="v6-secondary">'+icon('heart')+'<div><strong>飲みたい一杯</strong><span>保存した '+favoriteIds().length+'種類を見る</span></div><span class="row-arrow"></span></button>');
+    wishes.addEventListener('click',function () { navigate('favorites'); }); root.appendChild(wishes);
 
     var genreKeys = Object.keys(GENRES);
     if (genreKeys.length > 1) {
@@ -1933,6 +3196,7 @@ html{background:#08090b;overflow-x:hidden}body{background:#08090b;font-family:-a
     app.innerHTML = "";
     var root = el('<div class="screen"></div>');
     app.appendChild(root);
+    if (!ageOk && PRE_GATE_SCREENS.indexOf(state.screen) === -1) { renderAgeGate(root); renderTabbar(); syncBrowserHistory(); return; }
     if (state.screen === "auth") renderAuth(root);
     else if (state.screen === "newPassword") renderNewPassword(root);
     else if (state.screen === "start") renderStart(root);
@@ -1944,13 +3208,25 @@ html{background:#08090b;overflow-x:hidden}body{background:#08090b;font-family:-a
     else if (state.screen === "registry") renderRegistry(root);
     else if (state.screen === "stock") renderStock(root);
     else if (state.screen === "map") renderMap(root);
+    else if (state.screen === "collections") renderCollections(root);
+    else if (state.screen === "collectionDetail") renderCollectionDetail(root);
     else if (state.screen === "favorites") renderFavorites(root);
     else if (state.screen === "profile") renderProfile(root);
+    else if (state.screen === "guide") renderGuideIndex(root);
+    else if (state.screen === "guideDetail") renderGuideDetail(root);
+    else if (state.screen === "howto") renderHowto(root);
+    else if (state.screen === "terms") renderTerms(root);
+    else if (state.screen === "privacy") renderPrivacy(root);
+    else if (state.screen === "drinking") renderDrinking(root);
+    else if (state.screen === "contact") renderContact(root);
+    appendScreenAd(root);
     renderTabbar();
+    syncBrowserHistory();
   }
 
   // 起動時にログイン済みかどうかを確認し、画面を出し分ける
   async function boot() {
+    try { window.history.replaceState({ barlog: 0 }, ""); } catch (e) {}
     var urlParams = new URLSearchParams(window.location.search);
     var hashParams = new URLSearchParams(window.location.hash.slice(1));
     var linkError = urlParams.get("error") || hashParams.get("error");
